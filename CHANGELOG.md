@@ -3,6 +3,14 @@
 inkmath follows [semantic versioning](https://semver.org). Before 1.0, a minor version (0.x.0) may change the API; a patch
 version (0.x.y) only fixes things.
 
+## 0.1.1 (2026-10-21)
+
+- `\neg` / `\lnot` (¬) is spaced as an ordinary symbol, as in TeX: in `p\Rightarrow\neg q` it no longer runs into the arrow
+  (MathLive files it under relations).
+- ¬ is centred in its own slot and looks hand-written: the stroke rises a little, turns down in a rounded corner and thins
+  out where the pen lifts. ∀ ∃ ∧ ∨ get the same pen pressure.
+- First version published from GitHub Actions with npm Trusted Publishing, with provenance.
+
 ## 0.1.0 (2026-10-21)
 
 First release.

@@ -94,6 +94,12 @@ const TEMPLATES = {
   '\\bigcup': '\\bigcup_{#?}^{#?}#?', '\\bigcap': '\\bigcap_{#?}^{#?}#?',
 };
 const BB = { '\\R': '\\mathbb{R}', '\\Z': '\\mathbb{Z}', '\\N': '\\mathbb{N}', '\\Q': '\\mathbb{Q}', '\\C': '\\mathbb{C}' };
+// MathLive files \neg and \lnot under relations, so in p\Rightarrow\neg q the arrow and ¬ touched and a wide space
+// followed ¬; in TeX they are ordinary symbols
+const MACROS = {
+  R: '\\mathbb{R}', Z: '\\mathbb{Z}', N: '\\mathbb{N}', Q: '\\mathbb{Q}', C: '\\mathbb{C}',
+  neg: '\\mathord{\\char"AC}', lnot: '\\mathord{\\char"AC}',
+};
 // commands that need an argument or limits are intercepted *before* MathLive commits them from LaTeX mode:
 // MathLive would leave e.g. an empty \vec{} selected (the next key replaces it) or put \int's limits in its own order
 const ARG = Object.fromEntries(['sqrt', 'vec', 'hat', 'bar', 'dot', 'ddot', 'tilde', 'overline', 'underline',
@@ -179,7 +185,7 @@ export async function createInkMath(container, options = {}) {
   mf.mathVirtualKeyboardPolicy = 'manual';
   mf.menuItems = [];
   mf.readOnly = !!o.readOnly;
-  mf.macros = { ...mf.macros, R: '\\mathbb{R}', Z: '\\mathbb{Z}', N: '\\mathbb{N}', Q: '\\mathbb{Q}', C: '\\mathbb{C}' };
+  mf.macros = { ...mf.macros, ...MACROS };
   const shortcuts = { ...mf.inlineShortcuts };
   for (const k of ['dx', 'dy', 'dt']) delete shortcuts[k];
   mf.inlineShortcuts = shortcuts;
@@ -312,7 +318,7 @@ export async function createInkMath(container, options = {}) {
   }
   // a template or symbol as button markup, in the current handwriting font
   const renderIcon = (latex) =>
-    `<span class="inkmath-icon" style="--hw-font:'inkmath-${fontId}'">${convertLatexToMarkup(preview(latex))}</span>`;
+    `<span class="inkmath-icon" style="--hw-font:'inkmath-${fontId}'">${convertLatexToMarkup(preview(latex), { macros: MACROS })}</span>`;
 
   mf.addEventListener('input', (e) => {
     // a font command typed in LaTeX mode with no argument
@@ -400,7 +406,7 @@ export async function renderLatex(target, latex, options = {}) {
   host.className = 'inkmath-static' + (o.display ? ' inkmath-display' : '');
   host.style.setProperty('--hw-font', fontVar(fontId));
   const math = document.createElement('span'); math.className = 'inkmath-static-math';
-  math.innerHTML = convertLatexToMarkup(latex, { defaultMode: o.display ? 'math' : 'inline-math' });
+  math.innerHTML = convertLatexToMarkup(latex, { macros: MACROS, defaultMode: o.display ? 'math' : 'inline-math' });
   const svg = overlaySVG();
   host.append(math, svg);
   target.replaceChildren(host);

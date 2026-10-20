@@ -31,6 +31,8 @@ function charBox(node, i, el) {
     x0: rect.left - m.actualBoundingBoxLeft * k, x1: rect.left + m.actualBoundingBoxRight * k,
     y0: base - m.actualBoundingBoxAscent * k, y1: base + m.actualBoundingBoxDescent * k,
     em: parseFloat(cs.fontSize), base,
+    // the slot the character takes in the line (the ink box above is from canvas metrics, which miss font-size-adjust)
+    left: rect.left, right: rect.right,
   };
 }
 
@@ -162,12 +164,14 @@ export function measure(root, { strokeSel = null } = {}) {
       const b = charBox(n, n.data.indexOf(t), el);
       if (!b || b.x1 - b.x0 <= 0) continue;
       el.style.color = 'transparent';
-      // ∞ is centred on the math axis, like a typeset one (the fallback font's ∞ sits high); shapes get their own size
-      const axis = b.base - 0.25 * b.em, cx = (b.x0 + b.x1) / 2;
+      // ∞ is centred on the math axis, like a typeset one (the fallback font's ∞ sits high); shapes get their own size,
+      // centred in the character's slot and no wider than it, so they never reach into a neighbour
+      const axis = b.base - 0.25 * b.em;
       let box = b;
       if (t === '∞') box = { ...b, y0: axis - (b.y1 - b.y0) / 2, y1: axis + (b.y1 - b.y0) / 2 };
       else {
-        const [h, w, anchor] = SHAPE_BOX[t], H = h * b.em, W = w * b.em;
+        const cx = (b.left + b.right) / 2;
+        const [h, w, anchor] = SHAPE_BOX[t], H = h * b.em, W = Math.min(w * b.em, 0.92 * (b.right - b.left));
         const y1 = anchor === 'base' ? b.base : axis + H / 2;
         box = { ...b, x0: cx - W / 2, x1: cx + W / 2, y0: y1 - H, y1 };
       }
@@ -515,11 +519,23 @@ function inftyPaths(p, k, rand) {
   return [{ d: smoothPath(k > 0 ? wobble(pts, 0.008 * e * k, rand) : pts), w: p.w }];
 }
 
-// ∀ ∃ ¬ ∧ ∨ ∵ ∴ from SHAPES: points jittered inside the box, inner corners rounded, a little wobble; dots are tiny ticks
+// ¬ as written: the stroke rises a little to the right, turns down in a rounded corner and the short tick leans in
+function negPoints(p, k, rand) {
+  const { x0, x1, y0, y1 } = p.box, e = p.em, W = x1 - x0, H = y1 - y0, kk = Math.min(k, 1.5);
+  const y = y0 + 0.15 * H, rise = Math.min(Math.tan(uniform(rand, 1, 3.5) * Math.PI / 180) * W, 0.05 * e) * kk;
+  const a = [x0 + uniform(rand, -0.03, 0.04) * W, y + rise / 2];
+  const c = [x1 + uniform(rand, -0.04, 0.02) * W, y - rise / 2];
+  const end = [c[0] - uniform(rand, 0.03, 0.12) * W * kk, y0 + uniform(rand, 0.72, 0.92) * H];
+  return roundedPolyline([a, c, end], [uniform(rand, 0.04, 0.07) * e]);
+}
+
+// ∀ ∃ ¬ ∧ ∨ ∵ ∴ from SHAPES: points jittered inside the box, inner corners rounded, a little wobble, and the same pen
+// pressure as the bars (heavier where the pen lands, thinner where it lifts); dots are tiny ticks
 function shapePaths(p, k, rand) {
   const { x0, x1, y0, y1 } = p.box, e = p.em, W = x1 - x0, H = y1 - y0;
   const kk = Math.min(k, 1.5);
   const out = [];
+  if (p.ch === '¬' && k > 0) return [{ d: outline(wobble(negPoints(p, k, rand), 0.005 * e * k, rand), p.w, k * 0.7), fill: true }];
   for (const line of SHAPES[p.ch]) {
     const pts = line.map(([u, v]) => [x0 + u * W + (k > 0 ? uniform(rand, -0.04, 0.04) * W * kk : 0), y0 + v * H + (k > 0 ? uniform(rand, -0.04, 0.04) * H * kk : 0)]);
     if (pts.length === 1) {
@@ -528,7 +544,7 @@ function shapePaths(p, k, rand) {
       continue;
     }
     const dense = roundedPolyline(pts, pts.slice(1, -1).map(() => 0.06 * e));
-    out.push({ d: smoothPath(k > 0 ? wobble(dense, 0.006 * e * k, rand) : dense), w: p.w });
+    out.push(k > 0 ? { d: outline(wobble(dense, 0.006 * e * k, rand), p.w, k * 0.6), fill: true } : { d: smoothPath(dense), w: p.w });
   }
   return out;
 }
