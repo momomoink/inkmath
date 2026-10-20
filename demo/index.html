@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>inkmath demo</title>
+<link rel="stylesheet" href="../dist/inkmath.css">
+<style>
+  body { margin: 0; background: #f7f6f2; color: #1f2a44; font: 15px/1.5 system-ui, "Microsoft YaHei", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; margin: 0 0 18px; }
+  .card { background: #fff; border: 1px solid #e5e3dc; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .label { font-size: 12px; color: #6b7280; letter-spacing: .04em; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .card > .row + * , .card > * + .row { margin-top: 10px; }
+  button, select { font: inherit; padding: 6px 12px; border: 1px solid #e5e3dc; background: #fff; border-radius: 8px; cursor: pointer; color: inherit; }
+  button:hover { border-color: #2563eb; }
+  code, #latex { font-family: Consolas, "Cascadia Mono", monospace; font-size: 13px; }
+  #latex { background: #f3f4f6; border-radius: 6px; padding: 8px 10px; word-break: break-all; min-height: 34px; margin-top: 6px; }
+  #static { font-size: 28px; }
+  #static p { margin: 6px 0; }
+  input[type=range] { width: 120px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>inkmath</h1>
+  <p class="sub">Word 式公式编辑器，手写体显示。工具栏点选结构和符号，也可以直接打 LaTeX 命令。</p>
+
+  <div class="card">
+    <div id="editor"></div>
+    <div class="row">
+      <span class="label">示例：</span>
+      <button data-ex="\int_{0}^{1}\frac{x^{2}}{\sqrt{1+x^{2}}}\,dx">积分</button>
+      <button data-ex="\sum_{n=1}^{\infty}\frac{1}{n^{2}}=\frac{\pi^{2}}{6}">求和</button>
+      <button data-ex="x=\frac{-b\pm\sqrt{b^{2}-4ac}}{2a}">求根公式</button>
+      <button data-ex="A\cup B\subseteq\mathbb{R},\ \mathbb{N}\subset\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}\subset\mathbb{C}">集合</button>
+      <button data-ex="\left(\frac{\partial f}{\partial x}\right)^{2}+\alpha\nabla\cdot\vec{v}=0">偏导</button>
+      <button data-ex="">清空</button>
+    </div>
+    <div class="row">
+      <span class="label">字体</span><select id="font"></select>
+      <span class="label">笔画粗细</span><input type="range" id="thick" min="0.03" max="0.11" step="0.005" value="0.06">
+      <span class="label">线条手绘感</span><input type="range" id="rough" min="0" max="2.5" step="0.1" value="1">
+      <button id="reseed">换一种笔迹</button>
+    </div>
+    <div id="latex"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">renderLatex：只显示，不编辑</div>
+    <div id="static">
+      <p>行内：<span id="s1"></span>，再来一个 <span id="s2"></span></p>
+      <div id="s3"></div>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+import { createInkMath, renderLatex } from '../dist/inkmath.bundle.js';
+
+const out = document.getElementById('latex');
+const editor = await createInkMath(document.getElementById('editor'), {
+  value: '\\int_{0}^{1}\\frac{x^{2}}{\\sqrt{1+x^{2}}}\\,dx',
+  onChange: (latex) => { out.textContent = latex || '（空）'; },
+});
+out.textContent = editor.getValue();
+
+const sel = document.getElementById('font');
+for (const f of editor.fonts) sel.add(new Option(f.label + (f.greek < 1 ? '（希腊字母借用文楷）' : ''), f.id));
+sel.value = editor.getFont();
+sel.onchange = () => editor.setFont(sel.value);
+document.getElementById('thick').oninput = (e) => editor.setStyle({ thickness: e.target.value });
+document.getElementById('rough').oninput = (e) => editor.setStyle({ roughness: e.target.value });
+document.getElementById('reseed').onclick = () => editor.reseed();
+document.querySelectorAll('[data-ex]').forEach((b) => b.onclick = () => {
+  editor.setValue(b.dataset.ex); out.textContent = b.dataset.ex || '（空）'; editor.focus();
+});
+
+await Promise.all([
+  renderLatex(document.getElementById('s1'), 'e^{i\\pi}+1=0'),
+  renderLatex(document.getElementById('s2'), '\\sqrt{a^{2}+b^{2}}', { font: 'kalam' }),
+  renderLatex(document.getElementById('s3'), '\\sum_{n=1}^{\\infty}\\frac{1}{n^{2}}=\\frac{\\pi^{2}}{6},\\quad x\\in\\mathbb{R}', { display: true }),
+]);
+window.__ready = true;
+</script>
+</body>
+</html>

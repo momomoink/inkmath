@@ -1,0 +1,58 @@
+[
+ {
+  "id": "caveat",
+  "label": "Caveat",
+  "file": "fonts/caveat.ttf",
+  "greek": 0.09,
+  "chars": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789μ+-−=×÷±·<>≤≥≠≈′″!?.,:;'\"()[]{}|/\\%&#^_~¬°"
+ },
+ {
+  "id": "kalam",
+  "label": "Kalam",
+  "file": "fonts/kalam.ttf",
+  "greek": 0.09,
+  "chars": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789π+-−=×÷±·<>≤≥≠≈∞∂∫∑∏√!?.,:;'\"()[]{}|/\\%&#^_~¬°"
+ },
+ {
+  "id": "patrick",
+  "label": "Patrick Hand",
+  "file": "fonts/patrick.ttf",
+  "greek": 0.27,
+  "chars": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789λμπΩ+-−=×÷±·<>≤≥≠≈∞∫∑√!?.,:;'\"()[]{}|/\\%&#^_~¬°"
+ },
+ {
+  "id": "architects",
+  "label": "Architects Daughter",
+  "file": "fonts/architects.ttf",
+  "greek": 0,
+  "chars": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-−=×÷±·<>!?.,:;'\"()[]{}|/\\%&#^_~¬°"
+ },
+ {
+  "id": "shadows",
+  "label": "Shadows Into Light Two",
+  "file": "fonts/shadows.ttf",
+  "greek": 0.09,
+  "chars": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789μ+-−=×÷±·<>!?.,:;'\"()[]{}|/\\%&#^_~¬°"
+ },
+ {
+  "id": "gochi",
+  "label": "Gochi Hand",
+  "file": "fonts/gochi.ttf",
+  "greek": 0,
+  "chars": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-=×÷±·<>!?.,:;'\"()[]{}|/\\%&#^_~¬°"
+ },
+ {
+  "id": "nanumpen",
+  "label": "Nanum Pen Script",
+  "file": "fonts/nanumpen.ttf",
+  "greek": 0,
+  "chars": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-=×÷±<>≠!?.,:;'\"()[]{}|/\\%&#^_~°"
+ },
+ {
+  "id": "wenkai",
+  "label": "霞鹜文楷",
+  "file": "fonts/wenkai.ttf",
+  "greek": 1,
+  "chars": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789αβγδεϵζηθϑικλμνξοπϖρϱσςτυφϕχψωΓΔΘΛΞΠΣΥΦΨΩ+-−=×÷±∓·⋅<>≤≥≠≈≡∼≃≅∝∞∂∇∫∬∮∑∏√′″!?.,:;'\"()[]{}|‖/\\%&#^_~∈∉∋⊂⊃⊆⊇⊊∪∩∅∖∀∃∄¬∧∨⇒⇔→←↔°"
+ }
+]

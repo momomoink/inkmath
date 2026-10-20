@@ -1,0 +1,231 @@
+<title>inkmath</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="dist/inkmath.css">
+<style>
+  /* Layout: one column like a sheet torn off an engineering pad; the live editor sits on its grid, everything else is margin notes below */
+  :root {
+    --bg: #f3f5f1;
+    --sheet: #fbfcf8;
+    --grid: #d9e6d3;
+    --ink: #1d2b4a;
+    --muted: #5d6b63;
+    --line: #d7ddd3;
+    --accent: #2f6f4f;
+    --code-bg: #e9eee6;
+    --display: "Familjen Grotesk", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    --body: "IBM Plex Sans", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    --mono: "JetBrains Mono", Consolas, "Cascadia Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121815; --sheet: #18211c; --grid: #24332b; --ink: #e6eadf; --muted: #95a39a;
+      --line: #2c3a32; --accent: #7fc4a0; --code-bg: #1f2a24; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121815; --sheet: #18211c; --grid: #24332b; --ink: #e6eadf; --muted: #95a39a;
+    --line: #2c3a32; --accent: #7fc4a0; --code-bg: #1f2a24; color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); }
+  main {
+    max-width: 1040px; margin: 0 auto;
+    padding-block: 32px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid; gap: 40px;
+  }
+  h1, h2 { font-family: var(--display); font-weight: 700; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(34px, 6vw, 52px); letter-spacing: -0.02em; line-height: 1.05; }
+  h2 { font-size: 20px; }
+  p { margin: 0; }
+  code, pre, .mono { font-family: var(--mono); font-size: 13px; }
+  a { color: var(--accent); }
+  button, select {
+    font: 500 14px var(--body); color: var(--ink); background: var(--sheet);
+    border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer;
+  }
+  button:hover, select:hover { border-color: var(--accent); }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  header { display: grid; gap: 14px; }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .logo {
+    width: clamp(96px, 16vw, 140px); aspect-ratio: 1480 / 590; flex: none; background: var(--ink);
+    -webkit-mask: url(brand/inkmath-mono.svg) center / contain no-repeat; mask: url(brand/inkmath-mono.svg) center / contain no-repeat;
+  }
+  .lede { max-width: 62ch; color: var(--muted); font-size: 16px; }
+  .install { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .install code { background: var(--code-bg); border-radius: 6px; padding: 7px 12px; }
+
+  /* the sheet: editor on grid paper */
+  .sheet {
+    background: var(--sheet); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; display: grid; gap: 14px; min-width: 0;
+  }
+  #editor .inkmath {
+    --inkmath-ink: var(--ink); --inkmath-muted: var(--muted); --inkmath-line: var(--line);
+    --inkmath-accent: var(--accent); --inkmath-surface: var(--sheet); --inkmath-selection: color-mix(in srgb, var(--accent) 22%, transparent);
+    --inkmath-focus: color-mix(in srgb, var(--accent) 45%, transparent);
+    --inkmath-paper: var(--sheet);
+    --inkmath-font-size: clamp(26px, 5.5vw, 42px);
+  }
+  #editor math-field {
+    background-color: var(--sheet);
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px; min-height: 120px;
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+  .controls label { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+  .controls input[type=range] { width: 110px; accent-color: var(--accent); }
+  .examples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .examples span, .label { font-size: 12px; letter-spacing: 0.06em; color: var(--muted); }
+  .examples button { font-size: 13px; padding: 4px 10px; }
+  .out { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; min-width: 0; }
+  #latex { background: var(--code-bg); border-radius: 6px; padding: 8px 10px; word-break: break-all; min-height: 36px; margin: 0; white-space: pre-wrap; }
+
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; }
+  section { display: grid; gap: 12px; align-content: start; min-width: 0; }
+  pre.code { background: var(--code-bg); border-radius: 8px; padding: 14px; overflow-x: auto; margin: 0; line-height: 1.55; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  td { border-top: 1px solid var(--line); padding: 7px 6px; vertical-align: top; }
+  td:first-child { width: 46%; }
+  .wrapx { overflow-x: auto; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .gallery figure { margin: 0; background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; padding: 14px 12px 10px; display: grid; gap: 8px; justify-items: center; min-width: 0; }
+  .gallery .f { font-size: 26px; min-height: 64px; display: grid; place-items: center; max-width: 100%; overflow-x: auto; }
+  .gallery .f .inkmath-static { --inkmath-ink: var(--ink); }
+  .gallery figure.wide { grid-column: 1 / -1; }
+  .gallery figcaption { font-size: 12px; color: var(--muted); }
+  footer { color: var(--muted); font-size: 13px; display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .status { font-size: 13px; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main>
+  <header>
+    <div class="brand"><span class="logo" role="img" aria-label="inkmath logo"></span><h1>inkmath</h1></div>
+    <p class="lede">把公式写成手写体的公式编辑器。打 LaTeX 命令（比如 <code>\frac</code>、<code>\int</code> 加空格）就能快速编辑，不会 LaTeX 也可以点工具栏。下面就是一个能用的编辑器，试试看。</p>
+    <div class="install"><code id="installCmd">npm install inkmath</code><button id="copyInstall" type="button">复制</button></div>
+  </header>
+
+  <div class="sheet">
+    <div id="editor"><p class="status" id="status">正在加载编辑器和笔迹数据（约 3 MB）…</p></div>
+    <div class="examples">
+      <span>示例</span>
+      <button type="button" data-ex="\int_{0}^{1}\frac{x^{2}}{\sqrt{1+x^{2}}}\,dx">积分</button>
+      <button type="button" data-ex="\sum_{n=1}^{\infty}\frac{1}{n^{2}}=\frac{\pi^{2}}{6}">求和</button>
+      <button type="button" data-ex="x=\frac{-b\pm\sqrt{b^{2}-4ac}}{2a}">求根公式</button>
+      <button type="button" data-ex="\forall\varepsilon>0,\ \exists\delta>0:\ |x-a|<\delta\Rightarrow|f(x)-f(a)|<\varepsilon">ε-δ 定义</button>
+      <button type="button" data-ex="\mathbb{N}\subset\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}\subset\mathbb{C}">数集</button>
+      <button type="button" data-ex="\nabla\times\vec{E}=-\frac{\partial\vec{B}}{\partial t}">麦克斯韦方程</button>
+      <button type="button" data-ex="f:A\to B,\ x\mapsto x^{2}">映射</button>
+      <button type="button" data-ex="">清空</button>
+    </div>
+    <div class="controls">
+      <label for="font">字体 <select id="font"></select></label>
+      <label for="thick">笔画粗细 <input type="range" id="thick" min="0.03" max="0.11" step="0.005" value="0.06"></label>
+      <label for="rough">手绘程度 <input type="range" id="rough" min="0" max="2.5" step="0.1" value="1"></label>
+      <button type="button" id="reseed">换一种笔迹</button>
+    </div>
+    <div class="out">
+      <pre id="latex" class="mono" aria-label="LaTeX 输出"></pre>
+      <button type="button" id="copyLatex">复制 LaTeX</button>
+    </div>
+  </div>
+
+  <div class="two">
+    <section>
+      <h2>输入方式</h2>
+      <div class="wrapx"><table>
+        <tr><td><code>\alpha</code> + 空格</td><td>α。希腊字母都可以，直接打 <code>alpha</code> 也会变</td></tr>
+        <tr><td><code>\frac</code> + 空格，或 <code>/</code></td><td>分式。Tab 从分子跳到分母</td></tr>
+        <tr><td><code>\int</code> <code>\sum</code> + 空格</td><td>带空位的模板。Tab 依次是下限、上限、主体，和 Word 一样</td></tr>
+        <tr><td>积分后打 <code>dx</code></td><td>自动在 dx 前加小空格</td></tr>
+        <tr><td><code>\sqrt</code> <code>\vec</code> + 空格</td><td>根号、向量，光标在里面</td></tr>
+        <tr><td><code>\R</code> <code>\Z</code> <code>\N</code> + 空格</td><td>ℝ ℤ ℕ，也可以 <code>\mathbb</code> + 空格 + 字母</td></tr>
+        <tr><td><code>^</code> / <code>_</code></td><td>上标、下标。空格、→ 或 Tab 跳出</td></tr>
+        <tr><td>先选中再点工具栏</td><td>选中的内容会被套进模板，比如套上根号</td></tr>
+      </table></div>
+    </section>
+    <section>
+      <h2>在你的页面里用</h2>
+      <pre class="code"><code>import { createInkMath } from 'inkmath';
+import 'inkmath/style.css';
+
+const editor = await createInkMath(el, {
+  value: '\\int_0^1 x^2\\,dx',
+  font: 'caveat',
+  onChange: (latex) =&gt; save(latex),
+});
+
+editor.setFont('kalam');
+editor.setStyle({ roughness: 1.5 });</code></pre>
+      <p>只想显示、不需要编辑时，用 <code>renderLatex(el, latex)</code>，下面这些就是用它画的。</p>
+    </section>
+  </div>
+
+  <section>
+    <h2>只显示</h2>
+    <div class="gallery" id="gallery">
+      <figure><div class="f" data-tex="e^{i\pi}+1=0"></div><figcaption>欧拉恒等式</figcaption></figure>
+      <figure><div class="f" data-tex="\lim_{n\to\infty}\left(1+\frac{1}{n}\right)^{n}=e"></div><figcaption>极限</figcaption></figure>
+      <figure><div class="f" data-tex="\oint_{C}\vec{F}\cdot d\vec{r}"></div><figcaption>环路积分</figcaption></figure>
+      <figure class="wide"><div class="f" data-tex="\begin{pmatrix}a&amp;b\\c&amp;d\end{pmatrix}^{-1}=\frac{1}{ad-bc}\begin{pmatrix}d&amp;-b\\-c&amp;a\end{pmatrix}"></div><figcaption>逆矩阵</figcaption></figure>
+      <figure><div class="f" data-tex="p\Rightarrow q\Leftrightarrow\neg q\Rightarrow\neg p"></div><figcaption>逆否命题</figcaption></figure>
+      <figure><div class="f" data-tex="\Gamma(z)=\int_{0}^{\infty}t^{z-1}e^{-t}\,dt"></div><figcaption>Γ 函数</figcaption></figure>
+    </div>
+  </section>
+
+  <footer>
+    <p>编辑部分基于 MathLive。积分号、求和号、ℝℤ、希腊字母的手写笔迹来自 MathWriting 数据集（CC BY-NC-SA 4.0，不可商用）；字体均为 SIL Open Font License。</p>
+  </footer>
+</main>
+
+<script type="module">
+import { createInkMath, renderLatex } from './dist/inkmath.bundle.js';
+
+const $ = (id) => document.getElementById(id);
+const pref = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } return null; };
+
+// copy with a fallback for frames that refuse the clipboard: select the text so Ctrl+C works
+async function copy(text, btn, node) {
+  const was = btn.textContent;
+  try { await navigator.clipboard.writeText(text); btn.textContent = '已复制'; }
+  catch (e) { const r = document.createRange(); r.selectNodeContents(node); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = '已选中，按 Ctrl+C'; }
+  setTimeout(() => { btn.textContent = was; }, 1600);
+}
+$('copyInstall').onclick = () => copy('npm install inkmath', $('copyInstall'), $('installCmd'));
+
+const out = $('latex');
+const show = (latex) => { out.textContent = latex || '（空）'; };
+try {
+  const host = $('editor');
+  const editor = await createInkMath(host, {
+    value: '\\int_{0}^{1}\\frac{x^{2}}{\\sqrt{1+x^{2}}}\\,dx',
+    font: pref('inkmath.font') || 'caveat',
+    onChange: show,
+  });
+  $('status').remove();
+  show(editor.getValue());
+
+  const sel = $('font');
+  for (const f of editor.fonts) sel.add(new Option(f.label, f.id));
+  sel.value = editor.getFont();
+  sel.onchange = () => { editor.setFont(sel.value); pref('inkmath.font', sel.value); };
+  $('thick').oninput = (e) => editor.setStyle({ thickness: e.target.value });
+  $('rough').oninput = (e) => editor.setStyle({ roughness: e.target.value });
+  $('reseed').onclick = () => editor.reseed();
+  $('copyLatex').onclick = () => copy(editor.getValue(), $('copyLatex'), out);
+  document.querySelectorAll('[data-ex]').forEach((b) => {
+    b.onclick = () => { editor.setValue(b.dataset.ex); show(b.dataset.ex); editor.focus(); };
+  });
+
+  for (const el of document.querySelectorAll('#gallery [data-tex]')) await renderLatex(el, el.dataset.tex, { display: true });
+} catch (err) {
+  console.error(err);
+  $('status').textContent = '编辑器没能加载：' + err.message + '。刷新一下再试。';
+}
+window.__ready = true;
+</script>

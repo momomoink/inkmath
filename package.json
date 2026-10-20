@@ -1,0 +1,57 @@
+{
+  "name": "inkmath",
+  "version": "0.1.0",
+  "description": "A formula editor that writes in handwriting, edited fast with LaTeX commands",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./bundle": "./dist/inkmath.bundle.js",
+    "./style.css": "./dist/inkmath.css",
+    "./assets/*": "./assets/*"
+  },
+  "files": [
+    "src",
+    "dist",
+    "assets",
+    "NOTICE.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "*.css",
+    "./src/index.js"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "prepack": "npm run build",
+    "demo": "npx http-server . -p 8766 -a 127.0.0.1 -c-1 -o /demo/"
+  },
+  "keywords": [
+    "math",
+    "formula",
+    "equation",
+    "editor",
+    "latex",
+    "handwriting",
+    "mathlive"
+  ],
+  "author": "Rusheng Zhang",
+  "homepage": "https://github.com/momomoink/inkmath#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/momomoink/inkmath.git"
+  },
+  "bugs": "https://github.com/momomoink/inkmath/issues",
+  "license": "MIT AND CC-BY-NC-SA-4.0 AND OFL-1.1",
+  "dependencies": {
+    "mathlive": "0.110.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.0"
+  }
+}
