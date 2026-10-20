@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh">
+<html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>inkmath</title>
-<meta name="description" content="把公式写成手写体的公式编辑器，支持 LaTeX 命令快速编辑。">
+<meta name="description" content="A formula editor that writes in handwriting, edited fast with LaTeX commands.">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="icon" href="brand/favicon.ico" sizes="any">
 <link rel="icon" href="brand/icon.svg" type="image/svg+xml">
@@ -59,6 +59,10 @@
 
   header { display: grid; gap: 14px; }
   .brand { display: flex; align-items: center; gap: 18px; }
+  .topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .lang button { border: 0; border-radius: 0; padding: 4px 10px; font-size: 13px; background: transparent; color: var(--muted); }
+  .lang button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
   .logo {
     width: clamp(96px, 16vw, 140px); aspect-ratio: 1480 / 590; flex: none; background: var(--ink);
     -webkit-mask: url(brand/inkmath-mono.svg) center / contain no-repeat; mask: url(brand/inkmath-mono.svg) center / contain no-repeat;
@@ -113,88 +117,92 @@
 
 <main>
   <header>
-    <div class="brand"><span class="logo" role="img" aria-label="inkmath logo"></span><h1>inkmath</h1></div>
-    <p class="lede">把公式写成手写体的公式编辑器。打 LaTeX 命令（比如 <code>\frac</code>、<code>\int</code> 加空格）就能快速编辑，不会 LaTeX 也可以点工具栏。下面就是一个能用的编辑器，试试看。</p>
-    <div class="install"><code id="installCmd">npm install inkmath</code><button id="copyInstall" type="button">复制</button></div>
+    <div class="topline">
+      <div class="brand"><span class="logo" role="img" aria-label="inkmath logo"></span><h1>inkmath</h1></div>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+      </div>
+    </div>
+    <p class="lede" data-i18n-html="lede">A formula editor that writes in handwriting. Type LaTeX commands (such as <code>\frac</code> or <code>\int</code> followed by a space) to edit fast, or use the toolbar if you don't know LaTeX. The editor below is the real thing: try it.</p>
+    <div class="install"><code id="installCmd">npm install inkmath</code><button id="copyInstall" type="button" data-i18n="copy">Copy</button></div>
   </header>
 
   <div class="sheet">
-    <div id="editor"><p class="status" id="status">正在加载编辑器和笔迹数据（约 3 MB）…</p></div>
+    <div id="editor"><p class="status" id="status" data-i18n="loading">Loading the editor and pen strokes (about 3 MB)…</p></div>
     <div class="examples">
-      <span>示例</span>
-      <button type="button" data-ex="\int_{0}^{1}\frac{x^{2}}{\sqrt{1+x^{2}}}\,dx">积分</button>
-      <button type="button" data-ex="\sum_{n=1}^{\infty}\frac{1}{n^{2}}=\frac{\pi^{2}}{6}">求和</button>
-      <button type="button" data-ex="x=\frac{-b\pm\sqrt{b^{2}-4ac}}{2a}">求根公式</button>
-      <button type="button" data-ex="\forall\varepsilon>0,\ \exists\delta>0:\ |x-a|<\delta\Rightarrow|f(x)-f(a)|<\varepsilon">ε-δ 定义</button>
-      <button type="button" data-ex="\mathbb{N}\subset\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}\subset\mathbb{C}">数集</button>
-      <button type="button" data-ex="\nabla\times\vec{E}=-\frac{\partial\vec{B}}{\partial t}">麦克斯韦方程</button>
-      <button type="button" data-ex="f:A\to B,\ x\mapsto x^{2}">映射</button>
-      <button type="button" data-ex="">清空</button>
+      <span data-i18n="examples">Examples</span>
+      <button type="button" data-ex="\int_{0}^{1}\frac{x^{2}}{\sqrt{1+x^{2}}}\,dx" data-i18n="exIntegral">Integral</button>
+      <button type="button" data-ex="\sum_{n=1}^{\infty}\frac{1}{n^{2}}=\frac{\pi^{2}}{6}" data-i18n="exSum">Sum</button>
+      <button type="button" data-ex="x=\frac{-b\pm\sqrt{b^{2}-4ac}}{2a}" data-i18n="exQuadratic">Quadratic formula</button>
+      <button type="button" data-ex="\forall\varepsilon>0,\ \exists\delta>0:\ |x-a|<\delta\Rightarrow|f(x)-f(a)|<\varepsilon" data-i18n="exEpsilon">ε-δ definition</button>
+      <button type="button" data-ex="\mathbb{N}\subset\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}\subset\mathbb{C}" data-i18n="exNumbers">Number sets</button>
+      <button type="button" data-ex="\nabla\times\vec{E}=-\frac{\partial\vec{B}}{\partial t}" data-i18n="exMaxwell">Maxwell's equation</button>
+      <button type="button" data-ex="f:A\to B,\ x\mapsto x^{2}" data-i18n="exMap">Map</button>
+      <button type="button" data-ex="" data-i18n="exClear">Clear</button>
     </div>
     <div class="controls">
-      <label for="font">字体 <select id="font"></select></label>
-      <label for="thick">笔画粗细 <input type="range" id="thick" min="0.03" max="0.11" step="0.005" value="0.06"></label>
-      <label for="rough">手绘程度 <input type="range" id="rough" min="0" max="2.5" step="0.1" value="1"></label>
-      <button type="button" id="reseed">换一种笔迹</button>
+      <label for="font"><span data-i18n="font">Font</span> <select id="font"></select></label>
+      <label for="thick"><span data-i18n="thickness">Stroke width</span> <input type="range" id="thick" min="0.03" max="0.11" step="0.005" value="0.06"></label>
+      <label for="rough"><span data-i18n="roughness">Hand-drawn feel</span> <input type="range" id="rough" min="0" max="2.5" step="0.1" value="1"></label>
+      <button type="button" id="reseed" data-i18n="reseed">Another hand</button>
     </div>
     <div class="out">
-      <pre id="latex" class="mono" aria-label="LaTeX 输出"></pre>
-      <button type="button" id="copyLatex">复制 LaTeX</button>
+      <pre id="latex" class="mono" aria-label="LaTeX"></pre>
+      <button type="button" id="copyLatex" data-i18n="copyLatex">Copy LaTeX</button>
     </div>
   </div>
 
   <div class="two">
     <section>
-      <h2>输入方式</h2>
-      <div class="wrapx"><table>
-        <tr><td><code>\alpha</code> + 空格</td><td>α。希腊字母都可以，直接打 <code>alpha</code> 也会变</td></tr>
-        <tr><td><code>\frac</code> + 空格，或 <code>/</code></td><td>分式。Tab 从分子跳到分母</td></tr>
-        <tr><td><code>\int</code> <code>\sum</code> + 空格</td><td>带空位的模板。Tab 依次是下限、上限、主体，和 Word 一样</td></tr>
-        <tr><td>积分后打 <code>dx</code></td><td>自动在 dx 前加小空格</td></tr>
-        <tr><td><code>\sqrt</code> <code>\vec</code> + 空格</td><td>根号、向量，光标在里面</td></tr>
-        <tr><td><code>\R</code> <code>\Z</code> <code>\N</code> + 空格</td><td>ℝ ℤ ℕ，也可以 <code>\mathbb</code> + 空格 + 字母</td></tr>
-        <tr><td><code>^</code> / <code>_</code></td><td>上标、下标。空格、→ 或 Tab 跳出</td></tr>
-        <tr><td>先选中再点工具栏</td><td>选中的内容会被套进模板，比如套上根号</td></tr>
+      <h2 data-i18n="typingTitle">Typing</h2>
+      <div class="wrapx"><table data-i18n-html="typingTable">
+        <tr><td><code>\alpha</code> + space</td><td>α. Every Greek letter works, and so does <code>alpha</code> without the backslash</td></tr>
+        <tr><td><code>\frac</code> + space, or <code>/</code></td><td>A fraction. Tab moves from numerator to denominator</td></tr>
+        <tr><td><code>\int</code> <code>\sum</code> + space</td><td>A template with empty slots. Tab goes lower limit, upper limit, body, as in Word</td></tr>
+        <tr><td><code>dx</code> after an integral</td><td>Gets its thin space automatically</td></tr>
+        <tr><td><code>\sqrt</code> <code>\vec</code> + space</td><td>A radical or vector, caret inside</td></tr>
+        <tr><td><code>\R</code> <code>\Z</code> <code>\N</code> + space</td><td>ℝ ℤ ℕ, or <code>\mathbb</code> + space + a letter</td></tr>
+        <tr><td><code>^</code> / <code>_</code></td><td>Superscript, subscript. Space, → or Tab leaves it</td></tr>
+        <tr><td>Select, then click the toolbar</td><td>The selection goes inside the template, e.g. under a radical</td></tr>
       </table></div>
     </section>
     <section>
-      <h2>在你的页面里用</h2>
-      <p>最简单：放两个标签。工具栏可以放在页面任何地方，跟随有焦点的公式框。</p>
-      <pre class="code"><code>&lt;ink-math-toolbar locale="zh"&gt;&lt;/ink-math-toolbar&gt;
+      <h2 data-i18n="useTitle">On your page</h2>
+      <p data-i18n="useTags">Simplest: two tags. The toolbar can sit anywhere on the page and follows the formula you clicked.</p>
+      <pre class="code"><code data-i18n-html="tagsCode">&lt;ink-math-toolbar&gt;&lt;/ink-math-toolbar&gt;
 &lt;ink-math toolbar="none"&gt;\int_0^1 x^2\,dx&lt;/ink-math&gt;
 
 &lt;script type="module"&gt;
   import 'inkmath/elements';
   import 'inkmath/style.css';
 &lt;/script&gt;</code></pre>
-      <p>或者用 JS，工具栏内容、文字都可以换，也可以完全自己做界面：</p>
-      <pre class="code"><code>import { createInkMath } from 'inkmath';
-import zh from 'inkmath/locales/zh';
+      <p data-i18n="useJs">Or from JavaScript. The toolbar's content and words can be changed, or you can build your own:</p>
+      <pre class="code"><code data-i18n-html="jsCode">import { createInkMath } from 'inkmath';
 
 const editor = await createInkMath(el, {
-  toolbar: zh,          // 默认英文
   onChange: (latex) =&gt; save(latex),
 });
-editor.insert('\\sqrt{#@}');   // 自己的按钮</code></pre>
-      <p>只想显示、不需要编辑时，用 <code>renderLatex(el, latex)</code>，下面这些就是用它画的。</p>
+editor.insert('\\sqrt{#@}');   // your own button</code></pre>
+      <p data-i18n-html="useRender">To show a formula without editing it, use <code>renderLatex(el, latex)</code>. The ones below are drawn with it.</p>
     </section>
   </div>
 
   <section>
-    <h2>只显示</h2>
+    <h2 data-i18n="displayTitle">Display only</h2>
     <div class="gallery" id="gallery">
-      <figure><div class="f" data-tex="e^{i\pi}+1=0"></div><figcaption>欧拉恒等式</figcaption></figure>
-      <figure><div class="f" data-tex="\lim_{n\to\infty}\left(1+\frac{1}{n}\right)^{n}=e"></div><figcaption>极限</figcaption></figure>
-      <figure><div class="f" data-tex="\oint_{C}\vec{F}\cdot d\vec{r}"></div><figcaption>环路积分</figcaption></figure>
-      <figure class="wide"><div class="f" data-tex="\begin{pmatrix}a&amp;b\\c&amp;d\end{pmatrix}^{-1}=\frac{1}{ad-bc}\begin{pmatrix}d&amp;-b\\-c&amp;a\end{pmatrix}"></div><figcaption>逆矩阵</figcaption></figure>
-      <figure><div class="f" data-tex="p\Rightarrow q\Leftrightarrow\neg q\Rightarrow\neg p"></div><figcaption>逆否命题</figcaption></figure>
-      <figure><div class="f" data-tex="\Gamma(z)=\int_{0}^{\infty}t^{z-1}e^{-t}\,dt"></div><figcaption>Γ 函数</figcaption></figure>
+      <figure><div class="f" data-tex="e^{i\pi}+1=0"></div><figcaption data-i18n="gEuler">Euler's identity</figcaption></figure>
+      <figure><div class="f" data-tex="\lim_{n\to\infty}\left(1+\frac{1}{n}\right)^{n}=e"></div><figcaption data-i18n="gLimit">A limit</figcaption></figure>
+      <figure><div class="f" data-tex="\oint_{C}\vec{F}\cdot d\vec{r}"></div><figcaption data-i18n="gContour">Contour integral</figcaption></figure>
+      <figure class="wide"><div class="f" data-tex="\begin{pmatrix}a&amp;b\\c&amp;d\end{pmatrix}^{-1}=\frac{1}{ad-bc}\begin{pmatrix}d&amp;-b\\-c&amp;a\end{pmatrix}"></div><figcaption data-i18n="gInverse">Inverse matrix</figcaption></figure>
+      <figure><div class="f" data-tex="p\Rightarrow q\Leftrightarrow\neg q\Rightarrow\neg p"></div><figcaption data-i18n="gContra">Contrapositive</figcaption></figure>
+      <figure><div class="f" data-tex="\Gamma(z)=\int_{0}^{\infty}t^{z-1}e^{-t}\,dt"></div><figcaption data-i18n="gGamma">Gamma function</figcaption></figure>
     </div>
   </section>
 
   <footer>
-    <p><a href="https://github.com/momomoink/inkmath">GitHub</a> · <a href="https://www.npmjs.com/package/inkmath">npm</a> · <a href="https://github.com/momomoink/inkmath/tree/main/docs">文档</a></p>
-    <p>编辑部分基于 MathLive。积分号、求和号、ℝℤ、希腊字母的手写笔迹来自 MathWriting 数据集（CC BY-NC-SA 4.0，不可商用）；字体均为 SIL Open Font License。</p>
+    <p><a href="https://github.com/momomoink/inkmath">GitHub</a> · <a href="https://www.npmjs.com/package/inkmath">npm</a> · <a href="https://github.com/momomoink/inkmath/tree/main/docs" data-i18n="docs">Docs</a></p>
+    <p data-i18n="license">Editing is built on MathLive. The pen strokes for integrals, sums, ℝℤ and Greek letters come from the MathWriting dataset (CC BY-NC-SA 4.0, not for commercial use); all fonts are under the SIL Open Font License.</p>
   </footer>
 </main>
 
@@ -205,27 +213,101 @@ import zh from './dist/locales/zh.js';
 const $ = (id) => document.getElementById(id);
 const pref = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } return null; };
 
+// the page's own words in Chinese; English is what the HTML says, kept here for switching back
+const ZH = {
+  lede: '把公式写成手写体的公式编辑器。打 LaTeX 命令（比如 <code>\\frac</code>、<code>\\int</code> 加空格）就能快速编辑，不会 LaTeX 也可以点工具栏。下面就是一个能用的编辑器，试试看。',
+  copy: '复制', copied: '已复制', selected: '已选中，按 Ctrl+C',
+  loading: '正在加载编辑器和笔迹数据（约 3 MB）…', failed: '编辑器没能加载：{0}。刷新一下再试。', empty: '（空）',
+  examples: '示例', exIntegral: '积分', exSum: '求和', exQuadratic: '求根公式', exEpsilon: 'ε-δ 定义', exNumbers: '数集',
+  exMaxwell: '麦克斯韦方程', exMap: '映射', exClear: '清空',
+  font: '字体', thickness: '笔画粗细', roughness: '手绘程度', reseed: '换一种笔迹', copyLatex: '复制 LaTeX',
+  typingTitle: '输入方式',
+  typingTable: `
+        <tr><td><code>\\alpha</code> + 空格</td><td>α。希腊字母都可以，直接打 <code>alpha</code> 也会变</td></tr>
+        <tr><td><code>\\frac</code> + 空格，或 <code>/</code></td><td>分式。Tab 从分子跳到分母</td></tr>
+        <tr><td><code>\\int</code> <code>\\sum</code> + 空格</td><td>带空位的模板。Tab 依次是下限、上限、主体，和 Word 一样</td></tr>
+        <tr><td>积分后打 <code>dx</code></td><td>自动在 dx 前加小空格</td></tr>
+        <tr><td><code>\\sqrt</code> <code>\\vec</code> + 空格</td><td>根号、向量，光标在里面</td></tr>
+        <tr><td><code>\\R</code> <code>\\Z</code> <code>\\N</code> + 空格</td><td>ℝ ℤ ℕ，也可以 <code>\\mathbb</code> + 空格 + 字母</td></tr>
+        <tr><td><code>^</code> / <code>_</code></td><td>上标、下标。空格、→ 或 Tab 跳出</td></tr>
+        <tr><td>先选中再点工具栏</td><td>选中的内容会被套进模板，比如套上根号</td></tr>`,
+  useTitle: '在你的页面里用',
+  useTags: '最简单：放两个标签。工具栏可以放在页面任何地方，跟随你点过的公式框。',
+  tagsCode: `&lt;ink-math-toolbar locale="zh"&gt;&lt;/ink-math-toolbar&gt;
+&lt;ink-math toolbar="none"&gt;\\int_0^1 x^2\\,dx&lt;/ink-math&gt;
+
+&lt;script type="module"&gt;
+  import 'inkmath/elements';
+  import 'inkmath/style.css';
+&lt;/script&gt;`,
+  useJs: '或者用 JS，工具栏内容、文字都可以换，也可以完全自己做界面：',
+  jsCode: `import { createInkMath } from 'inkmath';
+import zh from 'inkmath/locales/zh';
+
+const editor = await createInkMath(el, {
+  toolbar: zh,          // 默认英文
+  onChange: (latex) =&gt; save(latex),
+});
+editor.insert('\\\\sqrt{#@}');   // 自己的按钮`,
+  useRender: '只想显示、不需要编辑时，用 <code>renderLatex(el, latex)</code>，下面这些就是用它画的。',
+  displayTitle: '只显示', gEuler: '欧拉恒等式', gLimit: '极限', gContour: '环路积分', gInverse: '逆矩阵', gContra: '逆否命题', gGamma: 'Γ 函数',
+  docs: '文档',
+  license: '编辑部分基于 MathLive。积分号、求和号、ℝℤ、希腊字母的手写笔迹来自 MathWriting 数据集（CC BY-NC-SA 4.0，不可商用）；字体均为 SIL Open Font License。',
+};
+const EN = { copied: 'Copied', selected: 'Selected, press Ctrl+C', failed: 'The editor did not load: {0}. Try reloading.', empty: '(empty)' };
+for (const el of document.querySelectorAll('[data-i18n]')) EN[el.dataset.i18n] = el.textContent;
+for (const el of document.querySelectorAll('[data-i18n-html]')) EN[el.dataset.i18nHtml] = el.innerHTML;
+
+// ?lang= first, then the last choice, then the browser's language
+const pick = () => {
+  const q = new URLSearchParams(location.search).get('lang');
+  if (q === 'en' || q === 'zh') return q;
+  const saved = pref('inkmath.lang');
+  if (saved === 'en' || saved === 'zh') return saved;
+  return (navigator.languages || [navigator.language]).some((l) => /^zh\b/i.test(l || '')) ? 'zh' : 'en';
+};
+let lang = pick();
+const t = (k) => (lang === 'zh' ? ZH : EN)[k] ?? EN[k];
+
+function applyText() {
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+  for (const el of document.querySelectorAll('[data-i18n-html]')) el.innerHTML = t(el.dataset.i18nHtml);
+  for (const b of document.querySelectorAll('[data-lang]')) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+}
+applyText();
+
 // copy with a fallback for frames that refuse the clipboard: select the text so Ctrl+C works
 async function copy(text, btn, node) {
   const was = btn.textContent;
-  try { await navigator.clipboard.writeText(text); btn.textContent = '已复制'; }
-  catch (e) { const r = document.createRange(); r.selectNodeContents(node); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = '已选中，按 Ctrl+C'; }
+  try { await navigator.clipboard.writeText(text); btn.textContent = t('copied'); }
+  catch (e) { const r = document.createRange(); r.selectNodeContents(node); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = t('selected'); }
   setTimeout(() => { btn.textContent = was; }, 1600);
 }
 $('copyInstall').onclick = () => copy('npm install inkmath', $('copyInstall'), $('installCmd'));
 
 const out = $('latex');
-const show = (latex) => { out.textContent = latex || '（空）'; };
-try {
-  const host = $('editor');
-  const editor = await createInkMath(host, {
-    value: '\\int_{0}^{1}\\frac{x^{2}}{\\sqrt{1+x^{2}}}\\,dx',
+const show = (latex) => { out.textContent = latex || t('empty'); };
+const host = $('editor');
+let editor = null;
+
+// the toolbar's language is set when the editor is made, so switching language makes a new one with the same formula
+async function mountEditor(value) {
+  const style = editor ? editor.getStyle() : {};
+  if (editor) editor.destroy();
+  editor = await createInkMath(host, {
+    value,
     font: pref('inkmath.font') || 'caveat',
-    toolbar: zh,
+    toolbar: lang === 'zh' ? zh : true,
     onChange: show,
+    ...style,
   });
-  $('status').remove();
   show(editor.getValue());
+}
+
+try {
+  await mountEditor('\\int_{0}^{1}\\frac{x^{2}}{\\sqrt{1+x^{2}}}\\,dx');
+  $('status').remove();
 
   const sel = $('font');
   for (const f of editor.fonts) sel.add(new Option(f.label, f.id));
@@ -238,11 +320,21 @@ try {
   document.querySelectorAll('[data-ex]').forEach((b) => {
     b.onclick = () => { editor.setValue(b.dataset.ex); show(b.dataset.ex); editor.focus(); };
   });
+  for (const b of document.querySelectorAll('[data-lang]')) {
+    b.onclick = async () => {
+      if (b.dataset.lang === lang) return;
+      lang = b.dataset.lang; pref('inkmath.lang', lang);
+      applyText();
+      await mountEditor(editor.getValue());
+    };
+  }
 
   for (const el of document.querySelectorAll('#gallery [data-tex]')) await renderLatex(el, el.dataset.tex, { display: true });
 } catch (err) {
   console.error(err);
-  $('status').textContent = '编辑器没能加载：' + err.message + '。刷新一下再试。';
+  const st = $('status');
+  if (st) st.textContent = t('failed').replace('{0}', err.message);
 }
 window.__ready = true;
 </script>
+
