@@ -91,6 +91,7 @@ More in [Editing](docs/editing.md).
 - [Styling](docs/styling.md): colours, fonts, stroke thickness and roughness, dark mode
 - [Assets and bundlers](docs/assets.md): where the fonts and pen strokes are loaded from
 - [Brand](brand/README.md): logo files and colour palette
+- [Releasing](RELEASING.md): how a new version gets to npm
 
 ## Licence
 

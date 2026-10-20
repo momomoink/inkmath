@@ -1,0 +1,34 @@
+# Publishes to npm when a version tag (v0.2.0, …) is pushed, through npm Trusted Publishing: npm trusts this workflow
+# in this repo (set up once on npmjs.com, package settings → Trusted Publisher), so no token is stored anywhere.
+name: Publish
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write   # lets the job prove to npm which repo and workflow it is
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      # trusted publishing needs npm 11.5.1 or later
+      - run: npm install -g npm@^11.5.1
+      - name: Tag matches package.json
+        run: |
+          v="$(node -p "require('./package.json').version")"
+          if [ "v$v" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $v" >&2
+            exit 1
+          fi
+      - run: npm ci
+      # prepack builds dist/ before packing
+      - run: npm publish --provenance --access public
