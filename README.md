@@ -11,23 +11,16 @@
 
 <p align="center"><a href="https://momomoink.github.io/inkmath/"><b>Try it in your browser →</b></a></p>
 
-inkmath is a formula editor for the web that does two things.
+inkmath is a JavaScript formula editor built on [MathLive](https://github.com/arnog/mathlive), dedicated to rendering beautiful handwritten formulas with support for a rich set of LaTeX commands.
 
-**1. It writes formulas in handwriting.** What you enter comes out as if written by hand on paper, not typeset:
+## Features
 
-- letters and digits use a handwriting font (eight to choose from);
-- Greek letters, ∫, ∑, ℝ ℤ ℕ and large brackets use real pen strokes from the MathWriting dataset;
-- fraction bars, radicals, arrows, ∞ and ∀ ∃ ∧ ∨ ∵ ∴ are drawn as pen strokes, slightly uneven, heavier where the pen lands;
-- `\mathcal` uses Dancing Script, `\mathscr` uses Allura.
-
-`renderLatex()` draws any LaTeX formula in the same handwriting without an editor, for showing formulas you already have.
-
-**2. You edit it with LaTeX commands.** Type `\frac`, `\int`, `\alpha` and a space and the structure or symbol appears at once;
-Tab moves through the empty slots in Word's order. For people who don't know LaTeX, a Word-style toolbar inserts the same
-structures and symbols with a click. Either way, the result is ordinary LaTeX, so it can be stored, searched or typeset
-elsewhere.
-
-Editing is built on [MathLive](https://github.com/arnog/mathlive).
+- **Handwritten rendering:** Eight handwriting fonts for letters and digits, real pen strokes from the MathWriting dataset for Greek letters, integrals, sums, set symbols and large brackets, and hand-drawn fraction bars, radicals and arrows.
+- **Calligraphic styles:** `\mathcal` uses Dancing Script, and `\mathscr` uses Allura.
+- **Rich LaTeX input:** Type commands such as `\frac`, `\int` and `\alpha` followed by a space to insert structures and symbols. Tab moves through empty slots in Word's order, and `dx` after an integral gets a thin space automatically.
+- **Word-style toolbar:** Insert structures and symbols with a click, or wrap selected content in a template.
+- **Standard LaTeX output:** Store, search or typeset your formulas elsewhere.
+- **Standalone rendering:** Use `renderLatex()` to display existing LaTeX formulas in the same handwriting without an editor.
 
 ## Install
 
@@ -37,29 +30,42 @@ npm install inkmath
 
 ## Quick start
 
+inkmath is a component: importing it adds nothing to your page until you place an editor. Put the tags where you want them:
+
+```html
+<ink-math-toolbar></ink-math-toolbar>
+<ink-math toolbar="none">\int_{0}^{1} x^{2}\,dx</ink-math>
+
+<script type="module">
+  import 'inkmath/elements';
+  import 'inkmath/style.css';
+</script>
+```
+
+The toolbar can live anywhere and serves whichever formula was clicked last. Without `<ink-math-toolbar>`, each `<ink-math>`
+shows its own toolbar above it.
+
+Or from JavaScript:
+
 ```js
 import { createInkMath, renderLatex } from 'inkmath';
 import 'inkmath/style.css';
 
 const editor = await createInkMath(document.getElementById('editor'), {
-  value: '\\int_{0}^{1} x^{2}\\,dx',
   onChange: (latex) => console.log(latex),
 });
 
-await renderLatex(document.getElementById('formula'), 'e^{i\\pi}+1=0');
+await renderLatex(document.getElementById('formula'), 'e^{i\\pi}+1=0');   // display only
 ```
 
-Without a bundler, use the single-file build:
+Without a bundler, load `dist/inkmath.bundle.js` and `dist/inkmath.css`; the bundle defines the tags too. Using Vite? Read
+[Assets and bundlers](docs/assets.md) first: Vite's dev server needs one line of config.
 
-```html
-<link rel="stylesheet" href="node_modules/inkmath/dist/inkmath.css">
-<script type="module">
-  import { createInkMath } from './node_modules/inkmath/dist/inkmath.bundle.js';
-  await createInkMath(document.getElementById('editor'));
-</script>
-```
+## Your toolbar
 
-Using Vite? Read [Assets and bundlers](docs/assets.md) first: Vite's dev server needs one line of config.
+The toolbar is English by default, with Chinese included (`locale="zh"`, or `toolbar: zh` from `inkmath/locales/zh`). Its
+buttons, words, look and position can all be changed, and the editor API (`insert`, `command`, `getContext`, `on('context')`,
+`renderIcon`) is everything needed to build your own in any framework. See [The toolbar](docs/toolbar.md).
 
 ## Typing formulas
 
@@ -80,7 +86,8 @@ More in [Editing](docs/editing.md).
 
 - [Getting started](docs/getting-started.md)
 - [Editing](docs/editing.md): keyboard, toolbar, Tab order
-- [API](docs/api.md): `createInkMath`, `renderLatex`, `listFonts`, the toolbar data
+- [The toolbar](docs/toolbar.md): position, content, language, look, or your own
+- [API](docs/api.md): the tags, `createInkMath`, `renderLatex`, `listFonts`, the toolbar data
 - [Styling](docs/styling.md): colours, fonts, stroke thickness and roughness, dark mode
 - [Assets and bundlers](docs/assets.md): where the fonts and pen strokes are loaded from
 - [Brand](brand/README.md): logo files and colour palette

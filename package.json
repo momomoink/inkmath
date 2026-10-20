@@ -11,7 +11,16 @@
       "types": "./src/index.d.ts",
       "default": "./src/index.js"
     },
+    "./elements": {
+      "types": "./src/elements.d.ts",
+      "default": "./src/elements.js"
+    },
+    "./locales/zh": {
+      "types": "./src/locales/zh.d.ts",
+      "default": "./src/locales/zh.js"
+    },
     "./bundle": "./dist/inkmath.bundle.js",
+    "./bundle/locales/zh": "./dist/locales/zh.js",
     "./style.css": "./dist/inkmath.css",
     "./assets/*": "./assets/*"
   },
@@ -20,11 +29,14 @@
     "dist",
     "assets",
     "NOTICE.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "sideEffects": [
     "*.css",
-    "./src/index.js"
+    "./src/index.js",
+    "./src/elements.js",
+    "./src/bundle.js"
   ],
   "scripts": {
     "build": "node scripts/build.mjs",

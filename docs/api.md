@@ -1,10 +1,52 @@
 # API
 
 ```js
-import { createInkMath, renderLatex, listFonts, STRUCTURES, SYMBOLS } from 'inkmath';
+import { createInkMath, renderLatex, listFonts, STRUCTURES, SYMBOLS, LABELS, translateToolbar } from 'inkmath';
+import 'inkmath/elements';        // <ink-math> and <ink-math-toolbar>
+import zh from 'inkmath/locales/zh';
 ```
 
-TypeScript types ship with the package (`src/index.d.ts`).
+TypeScript types ship with the package.
+
+## Tags
+
+`import 'inkmath/elements'` (or loading `dist/inkmath.bundle.js`) defines two elements. They are a thin layer over
+`createInkMath`.
+
+### `<ink-math>`
+
+```html
+<ink-math value="x^2" font="kalam"></ink-math>
+<ink-math>\frac{a}{b}</ink-math>
+```
+
+| Attribute | |
+|---|---|
+| `value` | The formula. Without it, the element's text is used |
+| `font`, `thickness`, `roughness`, `seed` | As the options below; changing them later updates the field |
+| `readonly` | Show the formula without editing |
+| `toolbar="none"` | No toolbar of its own (for a shared `<ink-math-toolbar>` or your own) |
+| `locale` | Language of its own toolbar, e.g. `zh` |
+| `assets-url` | See [Assets and bundlers](assets.md) |
+
+| Property / event | |
+|---|---|
+| `.value` | The formula as LaTeX, read and write |
+| `.editor` | The editor object (below), once ready |
+| `.ready` | Promise of the editor |
+| `.toolbarConfig` | Configuration of its own toolbar; set before the element is added to the page |
+| `change` event | `event.detail.value` is the LaTeX, after every edit |
+| `ready` event | The field is drawn |
+
+### `<ink-math-toolbar>`
+
+```html
+<ink-math-toolbar locale="zh"></ink-math-toolbar>
+<ink-math-toolbar for="eq1"></ink-math-toolbar>
+```
+
+Without `for`, it serves the `<ink-math>` last clicked or focused (the first one on the page until then). `locale` picks its
+language; its `.config` property takes a full configuration (see [The toolbar](toolbar.md)).
 
 ## createInkMath(container, options?)
 
@@ -14,33 +56,50 @@ Puts an editor into `container` and resolves to an editor object once the fonts 
 |---|---|---|
 | `value` | `''` | Initial LaTeX |
 | `font` | `'caveat'` | Handwriting font id; see [fonts](styling.md#fonts) or `listFonts()` |
-| `toolbar` | `true` | Show the toolbar |
+| `toolbar` | `true` | `true` for the default toolbar, `false` for none, or a toolbar configuration (below) |
 | `readOnly` | `false` | Show the formula without letting it be edited (no toolbar either) |
 | `thickness` | `0.06` | Width of the drawn strokes, as a fraction of the font size |
 | `roughness` | `1` | How hand-drawn fraction bars, arrows and radicals look: `0` is clean and straight, higher is looser |
 | `seed` | `0` | Which pen-stroke sample each symbol uses; another number gives another hand |
 | `fonts` | `[]` | Fonts of your own, `{ id, label, url }`. The same id as a bundled font replaces it |
-| `structures` | `STRUCTURES` | The Structures tab of the toolbar |
-| `symbols` | `SYMBOLS` | The Symbols tab of the toolbar |
 | `assetsUrl` | the package's `assets/` | Where fonts and strokes are loaded from; see [Assets and bundlers](assets.md) |
-| `onChange` | – | Called with the LaTeX after every change |
+| `onChange` | – | Same as `editor.on('change', …)` |
+| `onContextChange` | – | Same as `editor.on('context', …)` |
+
+### Toolbar configuration
+
+| Field | Default | |
+|---|---|---|
+| `structures` | `STRUCTURES` | The galleries of the first tab; `[]` hides the tab |
+| `symbols` | `SYMBOLS` | The palettes of the second tab; `[]` hides the tab |
+| `labels` | `LABELS` | `{ structures, symbols, undo, redo, matrixActions }`: the toolbar's own words |
+| `edit` | `true` | Show undo and redo |
+| `container` | – | Put the toolbar in this element instead of above the field |
+
+`zh` from `inkmath/locales/zh` and the result of `translateToolbar()` are such configurations.
 
 ### The editor object
 
 | | |
 |---|---|
 | `getValue()` | The formula as LaTeX |
-| `setValue(latex)` | Replace the formula |
-| `insert(template)` | Insert at the caret, as a toolbar click does. `#?` is an empty slot, `#@` takes the selection: `insert('\\sqrt{#@}')` |
+| `setValue(latex)` | Replace the formula (fires no `change`) |
+| `insert(template)` | Insert at the caret. `#?` is an empty slot, `#@` takes the selection: `insert('\\sqrt{#@}')` |
+| `command(name)` | Run a MathLive command: `'undo'`, `'redo'`, `'addRowAfter'`, `'removeColumn'`, … |
+| `getContext()` | `{ focused, hasSelection, inMatrix, canUndo, canRedo, latexMode }` |
+| `on(event, fn)` | `'change'` (LaTeX), `'context'` (the above), `'font'` (font id). Returns a function that stops listening |
+| `renderIcon(latex)` | HTML for a button: `latex` in the current handwriting, slots as □ |
 | `focus()` | Focus the field |
 | `getFont()`, `setFont(id)` | The current font |
 | `getStyle()`, `setStyle({ thickness, roughness, seed })` | The stroke style; pass only what changes |
 | `reseed()` | Use different pen-stroke samples (adds 1 to `seed`) |
 | `redraw()` | Redraw now. Rarely needed: the editor redraws on every change and resize |
-| `destroy()` | Remove the editor and its listeners |
+| `destroy()` | Remove the editor, its toolbar and its listeners |
 | `element` | The editor's root element (`div.inkmath`) |
 | `mathfield` | The MathLive `<math-field>`, for anything this API does not cover |
 | `fonts` | The fonts available, `{ id, label, greek }` |
+
+`change` fires once per actual change, for typing as well as `insert` and `command`; not for `setValue`.
 
 ## renderLatex(target, latex, options?)
 
@@ -59,10 +118,8 @@ of Greek letters the font has itself; the rest come from LXGW WenKai. Takes `ass
 
 ## Toolbar data
 
-`STRUCTURES` and `SYMBOLS` are the default toolbar. Pass changed copies as `structures` and `symbols` to reorder, rename,
-translate or remove groups.
-
-A structure group opens a gallery of templates:
+`STRUCTURES` and `SYMBOLS` are the default toolbar content (English), `LABELS` its own words. A structure group opens a gallery
+of templates:
 
 ```js
 {
@@ -70,10 +127,10 @@ A structure group opens a gallery of templates:
   label: 'Fraction',                 // button caption
   icon: '\\frac{x}{y}',              // LaTeX drawn on the button
   items: [                           // [template, name]
-    ['\\frac{#@}{#?}', 'Stacked'],
-    ['{#@}/{#?}', 'Slashed'],
+    ['\\frac{#@}{#?}', 'Stacked fraction'],
+    ['{#@}/{#?}', 'Slashed fraction'],
   ],
-  actions: [['addRowAfter', 'Add row']],  // optional: MathLive commands under the gallery
+  actions: [['addRowAfter', 'Add row below']],  // optional: MathLive commands under the gallery
 }
 ```
 
@@ -85,12 +142,5 @@ A symbol group is a palette:
 { id: 'greek', label: 'Greek', items: ['\\alpha', '\\beta', '\\gamma'] }
 ```
 
-For example, an English toolbar with fewer groups:
-
-```js
-import { createInkMath, STRUCTURES, SYMBOLS } from 'inkmath';
-
-const names = { frac: 'Fraction', script: 'Script', root: 'Radical', int: 'Integral', matrix: 'Matrix' };
-const structures = STRUCTURES.filter((g) => names[g.id]).map((g) => ({ ...g, label: names[g.id] }));
-await createInkMath(el, { structures, symbols: SYMBOLS.slice(0, 2) });
-```
+`translateToolbar({ labels, structures, symbols, items, actions })` returns the default toolbar with its words replaced: group
+labels by id, gallery names by template, matrix actions by command. See [The toolbar](toolbar.md#3-its-language).

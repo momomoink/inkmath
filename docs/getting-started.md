@@ -8,7 +8,35 @@ npm install inkmath
 
 inkmath depends on MathLive, which npm installs with it. It runs in the browser only.
 
-## An editor
+inkmath is a component, not a page: importing it changes nothing on your page. An editor appears only where you put one, and
+its styles are scoped to its own elements.
+
+## An editor, as a tag
+
+```html
+<ink-math>\frac{a}{b}</ink-math>
+```
+
+```js
+import 'inkmath/elements';
+import 'inkmath/style.css';
+
+document.querySelector('ink-math').addEventListener('change', (e) => save(e.detail.value));
+```
+
+The tag shows a toolbar above the field. To have one toolbar for several formulas, anywhere on the page:
+
+```html
+<ink-math-toolbar></ink-math-toolbar>
+
+<ink-math toolbar="none">\frac{a}{b}</ink-math>
+<ink-math toolbar="none">x^2 + 1</ink-math>
+```
+
+The toolbar serves whichever formula was clicked last. For a Chinese toolbar, add `locale="zh"`. Everything about the toolbar
+can be changed: see [The toolbar](toolbar.md).
+
+## An editor, from JavaScript
 
 ```html
 <div id="editor"></div>
@@ -55,21 +83,24 @@ takes its size from the element's `font-size` and its colour from `color`, and r
 
 ## Without a bundler
 
-`dist/inkmath.bundle.js` is a single ES module with MathLive included, and `dist/inkmath.css` holds every style:
+`dist/inkmath.bundle.js` is a single ES module with MathLive included that also defines the tags, and `dist/inkmath.css` holds
+every style:
 
 ```html
 <link rel="stylesheet" href="/node_modules/inkmath/dist/inkmath.css">
-<div id="editor"></div>
-<script type="module">
-  import { createInkMath } from '/node_modules/inkmath/dist/inkmath.bundle.js';
-  await createInkMath(document.getElementById('editor'));
-</script>
+<script type="module" src="/node_modules/inkmath/dist/inkmath.bundle.js"></script>
+
+<ink-math>x^2</ink-math>
 ```
+
+The same module exports the API (`import { createInkMath } from '…/dist/inkmath.bundle.js'`), and `dist/locales/zh.js` is the
+Chinese toolbar.
 
 The page must be served over HTTP (not opened as a file), because the fonts and pen strokes are fetched at run time.
 
 ## Next
 
 - [Editing](editing.md) for what your users can type.
+- [The toolbar](toolbar.md) to change its content, language, look and place, or build your own.
 - [Styling](styling.md) to match your colours and pick a font.
 - [Assets and bundlers](assets.md) if fonts or strokes do not show up, or with Vite.

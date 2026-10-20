@@ -41,6 +41,5 @@ The toolbar has two tabs.
 
 Undo and redo sit at the right end of the tab bar (Ctrl+Z and Ctrl+Y also work).
 
-The toolbar's labels are in Chinese. You can replace the galleries and their names with your own (see
-[`structures` and `symbols`](api.md#toolbar-data)); the two tab names, the matrix hint and the undo/redo buttons are fixed for
-now.
+The toolbar is in English; a Chinese version ships with the package. Its content, words, look and place on the page can all be
+changed, or you can build your own: see [The toolbar](toolbar.md).

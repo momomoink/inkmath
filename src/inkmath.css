@@ -10,6 +10,7 @@
   --inkmath-focus: #a9cdb9;
 }
 .inkmath { color: var(--inkmath-ink); }
+ink-math, ink-math-toolbar { display: block; }
 .inkmath *, .inkmath *::before, .inkmath *::after { box-sizing: border-box; }
 
 /* editor */
@@ -24,36 +25,38 @@
 .inkmath-overlay { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
 
 /* toolbar */
-.inkmath-ribbon { position: relative; margin-bottom: 10px; }
-.inkmath-ribbon button {
+.inkmath-tb { position: relative; margin-bottom: 10px; }
+.inkmath-tb button {
   font: inherit; padding: 6px 12px; border: 1px solid var(--inkmath-line); background: var(--inkmath-surface);
   border-radius: 8px; cursor: pointer; color: var(--inkmath-ink);
 }
-.inkmath-ribbon button:hover { border-color: var(--inkmath-accent); }
-.inkmath-ribbon .rb-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--inkmath-line); margin-bottom: 8px; align-items: flex-end; }
-.inkmath-ribbon .rb-tab { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 6px 14px; color: var(--inkmath-muted); }
-.inkmath-ribbon .rb-tab.on { color: var(--inkmath-ink); border-bottom-color: var(--inkmath-accent); font-weight: 600; }
-.inkmath-ribbon .rb-edit { margin-left: auto; display: flex; gap: 6px; padding-bottom: 4px; }
-.inkmath-ribbon .rb-edit button { padding: 3px 10px; font-size: 13px; }
-.inkmath-ribbon .rb-pane { display: flex; flex-wrap: wrap; gap: 6px; }
-.inkmath-ribbon .rb-pane[hidden] { display: none; }
-.inkmath-ribbon .rb-pane:not([hidden]):has(.rb-subtabs) { flex-direction: column; }
-.inkmath-ribbon .rb-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-width: 82px; height: 86px; padding: 6px 8px; font-size: 20px; }
-.inkmath-ribbon .rb-cap { font-size: 12px; color: var(--inkmath-muted); }
-.inkmath-ribbon .rb-pop { position: absolute; z-index: 20; background: var(--inkmath-surface); border: 1px solid var(--inkmath-line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 10px; width: min(560px, 100%); }
-.inkmath-ribbon .rb-pop[hidden] { display: none; }
-.inkmath-ribbon .rb-pop-h { font-size: 12px; color: var(--inkmath-muted); margin-bottom: 6px; }
-.inkmath-ribbon .rb-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
-.inkmath-ribbon .rb-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px 4px; font-size: 20px; min-height: 84px; justify-content: space-between; }
-.inkmath-ribbon .rb-name { font-size: 11px; color: var(--inkmath-muted); }
-.inkmath-ribbon .rb-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: 12px; color: var(--inkmath-muted); }
-.inkmath-ribbon .rb-actions button { font-size: 12px; padding: 3px 8px; }
-.inkmath-ribbon .rb-subtabs { display: flex; flex-wrap: wrap; gap: 4px; }
-.inkmath-ribbon .rb-subtabs button { padding: 2px 10px; font-size: 13px; }
-.inkmath-ribbon .rb-subtabs button.on { background: var(--inkmath-ink); color: var(--inkmath-surface); border-color: var(--inkmath-ink); }
-.inkmath-ribbon .rb-symgrid { display: grid; grid-template-columns: repeat(auto-fill, 44px); gap: 4px; margin-top: 6px; }
-.inkmath-ribbon .rb-sym { width: 44px; height: 40px; padding: 0; font-size: 20px; display: flex; align-items: center; justify-content: center; }
-.inkmath-ribbon .ML__mathit, .inkmath-ribbon .ML__cmr, .inkmath-ribbon .ML__small-delim {
+.inkmath-tb button:hover { border-color: var(--inkmath-accent); }
+.inkmath-tb .inkmath-tb-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--inkmath-line); margin-bottom: 8px; align-items: flex-end; }
+.inkmath-tb .inkmath-tb-tab { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 6px 14px; color: var(--inkmath-muted); }
+.inkmath-tb .inkmath-tb-tab.on { color: var(--inkmath-ink); border-bottom-color: var(--inkmath-accent); font-weight: 600; }
+.inkmath-tb .inkmath-tb-edit { margin-left: auto; display: flex; gap: 6px; padding-bottom: 4px; }
+.inkmath-tb .inkmath-tb-edit button { padding: 3px 10px; font-size: 13px; }
+.inkmath-tb button:disabled { opacity: .45; cursor: default; border-color: var(--inkmath-line); }
+.inkmath-tb .inkmath-tb-pane { display: flex; flex-wrap: wrap; gap: 6px; }
+.inkmath-tb .inkmath-tb-pane[hidden] { display: none; }
+.inkmath-tb .inkmath-tb-pane:not([hidden]):has(.inkmath-tb-subtabs) { flex-direction: column; }
+.inkmath-tb .inkmath-tb-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-width: 82px; height: 86px; padding: 6px 8px; font-size: 20px; }
+.inkmath-tb .inkmath-tb-caption { font-size: 12px; color: var(--inkmath-muted); }
+.inkmath-tb .inkmath-tb-popup { position: absolute; z-index: 20; background: var(--inkmath-surface); border: 1px solid var(--inkmath-line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 10px; width: min(560px, 100%); }
+.inkmath-tb .inkmath-tb-popup[hidden] { display: none; }
+.inkmath-tb .inkmath-tb-popup-title { font-size: 12px; color: var(--inkmath-muted); margin-bottom: 6px; }
+.inkmath-tb .inkmath-tb-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
+.inkmath-tb .inkmath-tb-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px 4px; font-size: 20px; min-height: 84px; justify-content: space-between; }
+.inkmath-tb .inkmath-tb-item-name { font-size: 11px; color: var(--inkmath-muted); }
+.inkmath-tb .inkmath-tb-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: 12px; color: var(--inkmath-muted); }
+.inkmath-tb .inkmath-tb-actions button { font-size: 12px; padding: 3px 8px; }
+.inkmath-tb .inkmath-tb-subtabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.inkmath-tb .inkmath-tb-subtabs button { padding: 2px 10px; font-size: 13px; }
+.inkmath-tb .inkmath-tb-subtabs button.on { background: var(--inkmath-ink); color: var(--inkmath-surface); border-color: var(--inkmath-ink); }
+.inkmath-tb .inkmath-tb-symbols { display: grid; grid-template-columns: repeat(auto-fill, 44px); gap: 4px; margin-top: 6px; }
+.inkmath-tb .inkmath-tb-symbol { width: 44px; height: 40px; padding: 0; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+/* toolbar buttons and editor.renderIcon(): template previews in the handwriting font */
+.inkmath-icon :is(.ML__mathit, .ML__cmr, .ML__small-delim) {
   font-family: var(--hw-font), 'inkmath-wenkai', KaTeX_Main, serif; font-style: normal; font-size-adjust: ex-height 0.46;
 }
 
@@ -64,10 +67,10 @@
   font-family: var(--hw-font), 'inkmath-wenkai', KaTeX_Main, serif !important; font-style: normal !important; font-size-adjust: ex-height 0.46;
 }
 .inkmath-static :is(.ML__mathbf, .ML__boldsymbol) { font-weight: 700; }
-.inkmath-static .ML__cal, .inkmath-ribbon .ML__cal {
+.inkmath-static .ML__cal, .inkmath-icon .ML__cal {
   font-family: 'inkmath-cal', KaTeX_Caligraphic, serif !important; font-style: normal !important; font-size-adjust: cap-height 0.7;
 }
-.inkmath-static .ML__script, .inkmath-ribbon .ML__script {
+.inkmath-static .ML__script, .inkmath-icon .ML__script {
   font-family: 'inkmath-scr', KaTeX_Script, serif !important; font-style: normal !important; font-size-adjust: cap-height 0.7;
 }
 .inkmath-static :is(.ML__bb, .ML__large-op, .ML__sqrt-sign, [class*="ML__delim-size"], .ML__delim-mult) { color: transparent !important; }

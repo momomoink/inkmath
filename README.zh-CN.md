@@ -13,20 +13,16 @@
 
 English: [README.md](README.md) · 详细文档（英文）：[docs/](docs/README.md) · Logo 与配色：[brand/](brand/README.md)
 
-inkmath 是一个网页公式编辑器，主要做两件事。
+inkmath 是基于 [MathLive](https://github.com/arnog/mathlive) 的 JavaScript 公式编辑器，致力于渲染漂亮的手写体公式，支持丰富的 LaTeX 命令。
 
-**一、生成手写体公式。** 输入的公式不是印刷体，而是像在纸上手写出来的：
+## Features
 
-- 字母、数字用手写字体（8 种可选）；
-- 希腊字母、积分号、求和号、ℝ ℤ ℕ、大括号用真人笔迹（MathWriting 数据集）；
-- 根号、分数线、箭头、∞、∀ ∃ ∧ ∨ ∵ ∴ 由程序画成手写笔画，略有起伏，落笔处更重；
-- `\mathcal` 用 Dancing Script，`\mathscr` 用 Allura。
-
-不需要编辑时，`renderLatex()` 可以把任意现成的 LaTeX 公式直接画成同样的手写体。
-
-**二、支持 LaTeX 命令快速编辑。** 打 `\frac`、`\int`、`\alpha` 加空格，结构或符号立刻出现；Tab 按 Word 的顺序在空位间跳转（积分、求和是下限 → 上限 → 主体）；积分后打 `dx` 会自动加小空格。不会 LaTeX 的用户也可以用 Word 式工具栏点选结构和符号，先选中内容再点模板，内容会被套进去。无论哪种方式，得到的都是标准 LaTeX，可以保存、搜索，或拿去别处排版。
-
-编辑部分基于 [MathLive](https://github.com/arnog/mathlive)。
+- **手写体渲染：** 字母和数字提供 8 种手写字体；希腊字母、积分号、求和号、集合符号和大括号使用 MathWriting 数据集的真人笔迹；分数线、根号和箭头以手绘笔画呈现。
+- **花体样式：** `\mathcal` 使用 Dancing Script，`\mathscr` 使用 Allura。
+- **丰富的 LaTeX 输入：** 输入 `\frac`、`\int`、`\alpha` 等命令后按空格，即可插入结构和符号。Tab 按 Word 的顺序在空位间跳转，积分后输入 `dx` 会自动加小空格。
+- **Word 式工具栏：** 点击即可插入结构和符号，也可以先选中内容，再用模板包裹。
+- **标准 LaTeX 输出：** 公式可以保存、搜索，或用于其他地方的排版。
+- **独立渲染：** 无需编辑器，使用 `renderLatex()` 即可将现成的 LaTeX 公式渲染为同样的手写体。
 
 ## 安装
 
@@ -35,6 +31,41 @@ npm install inkmath
 ```
 
 ## 用法
+
+inkmath 是一个组件，不是一整个页面：引入它不会改动你的页面，编辑器只出现在你放的位置，样式也只作用在它自己的元素上。
+
+最简单的用法是放标签：
+
+```html
+<ink-math-toolbar locale="zh"></ink-math-toolbar>
+<ink-math toolbar="none">\int_{0}^{1} x^{2}\,dx</ink-math>
+
+<script type="module">
+  import 'inkmath/elements';
+  import 'inkmath/style.css';
+</script>
+```
+
+`<ink-math-toolbar>` 可以放在页面任何地方，服务最近点过的那个公式框，一个工具栏可以管多个公式（像 Word）。不放它的话，每个 `<ink-math>` 上方自带一个工具栏。
+
+### 工具栏改成中文
+
+工具栏默认是英文，中文在包里单独一个文件：
+
+```js
+import { createInkMath } from 'inkmath';
+import zh from 'inkmath/locales/zh';
+
+await createInkMath(el, { toolbar: zh });
+```
+
+用标签时加 `locale="zh"`（`<ink-math-toolbar locale="zh">` 或 `<ink-math locale="zh">`）。不用打包工具时是 `dist/locales/zh.js`。`zh` 是一份完整的工具栏配置，可以和其他设置合在一起：`{ ...zh, edit: false }`。想要别的语言，照着 [`src/locales/zh.js`](src/locales/zh.js) 翻译一份，传给 `translateToolbar()`。
+
+### 定制工具栏
+
+工具栏的按钮、文字、样式、位置都能改，也可以完全自己做界面，用编辑器的 `insert`、`command`、`getContext`、`on('context')`、`renderIcon` 实现。详见 [docs/toolbar.md](docs/toolbar.md)。
+
+### 用 JavaScript
 
 ```js
 import { createInkMath, renderLatex } from 'inkmath';
@@ -58,13 +89,12 @@ await renderLatex(document.getElementById('formula'), 'e^{i\\pi}+1=0');
 await renderLatex(el, '\\sum_{n=1}^{\\infty}\\frac{1}{n^{2}}', { display: true, font: 'patrick' });
 ```
 
-不用打包工具时，直接引入打包好的单文件：
+不用打包工具时，直接引入打包好的单文件（它同时定义了标签）：
 
 ```html
 <link rel="stylesheet" href="node_modules/inkmath/dist/inkmath.css">
-<script type="module">
-  import { createInkMath } from './node_modules/inkmath/dist/inkmath.bundle.js';
-</script>
+<script type="module" src="node_modules/inkmath/dist/inkmath.bundle.js"></script>
+<ink-math locale="zh">x^2</ink-math>
 ```
 
 ## 选项
@@ -75,15 +105,15 @@ await renderLatex(el, '\\sum_{n=1}^{\\infty}\\frac{1}{n^{2}}', { display: true, 
 |---|---|---|
 | `value` | `''` | 初始 LaTeX |
 | `font` | `'caveat'` | 字体 id，见下表或 `listFonts()` |
-| `toolbar` | `true` | 是否显示工具栏 |
+| `toolbar` | `true` | `true` 默认工具栏，`false` 不要，或一份工具栏配置 `{ structures, symbols, labels, edit, container }`（见 [docs/toolbar.md](docs/toolbar.md)） |
 | `readOnly` | `false` | 只读 |
 | `thickness` | `0.06` | 笔画粗细（相对字号） |
 | `roughness` | `1` | 分数线、箭头、根号的手绘程度：0 是干净的直线，1 默认，越大越随意 |
 | `seed` | `0` | 每个符号选用哪个笔迹样本 |
 | `fonts` | `[]` | 自己的字体 `{ id, label, url }`，id 相同会覆盖内置字体 |
-| `structures` / `symbols` | 内置 | 自定义工具栏内容，格式见 `STRUCTURES` / `SYMBOLS` |
 | `assetsUrl` | 包内 `assets/` | 字体和笔迹数据的位置，见下文 |
 | `onChange` | – | 内容变化时回调，参数是 LaTeX |
+| `onContextChange` | – | 光标位置、能否撤销等变化时回调，给自己做的工具栏用 |
 
 `renderLatex(target, latex, options)` 接受 `font`、`display`、`thickness`、`roughness`、`seed`、`fonts`、`assetsUrl`。
 

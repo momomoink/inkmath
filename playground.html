@@ -159,17 +159,23 @@
     </section>
     <section>
       <h2>在你的页面里用</h2>
+      <p>最简单：放两个标签。工具栏可以放在页面任何地方，跟随有焦点的公式框。</p>
+      <pre class="code"><code>&lt;ink-math-toolbar locale="zh"&gt;&lt;/ink-math-toolbar&gt;
+&lt;ink-math toolbar="none"&gt;\int_0^1 x^2\,dx&lt;/ink-math&gt;
+
+&lt;script type="module"&gt;
+  import 'inkmath/elements';
+  import 'inkmath/style.css';
+&lt;/script&gt;</code></pre>
+      <p>或者用 JS，工具栏内容、文字都可以换，也可以完全自己做界面：</p>
       <pre class="code"><code>import { createInkMath } from 'inkmath';
-import 'inkmath/style.css';
+import zh from 'inkmath/locales/zh';
 
 const editor = await createInkMath(el, {
-  value: '\\int_0^1 x^2\\,dx',
-  font: 'caveat',
+  toolbar: zh,          // 默认英文
   onChange: (latex) =&gt; save(latex),
 });
-
-editor.setFont('kalam');
-editor.setStyle({ roughness: 1.5 });</code></pre>
+editor.insert('\\sqrt{#@}');   // 自己的按钮</code></pre>
       <p>只想显示、不需要编辑时，用 <code>renderLatex(el, latex)</code>，下面这些就是用它画的。</p>
     </section>
   </div>
@@ -194,6 +200,7 @@ editor.setStyle({ roughness: 1.5 });</code></pre>
 
 <script type="module">
 import { createInkMath, renderLatex } from './dist/inkmath.bundle.js';
+import zh from './dist/locales/zh.js';
 
 const $ = (id) => document.getElementById(id);
 const pref = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } return null; };
@@ -214,6 +221,7 @@ try {
   const editor = await createInkMath(host, {
     value: '\\int_{0}^{1}\\frac{x^{2}}{\\sqrt{1+x^{2}}}\\,dx',
     font: pref('inkmath.font') || 'caveat',
+    toolbar: zh,
     onChange: show,
   });
   $('status').remove();

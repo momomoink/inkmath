@@ -2,10 +2,10 @@
 // Letters, digits, Greek and operators use a handwriting font inside the editor; big operators, radicals,
 // fraction bars, \mathbb and stretched delimiters are hidden and redrawn as pen strokes in an SVG overlay.
 import { MathfieldElement, convertLatexToMarkup } from 'mathlive';
-import { buildRibbon, STRUCTURES, SYMBOLS } from './ribbon.js';
+import { buildRibbon, preview, STRUCTURES, SYMBOLS, LABELS, translateToolbar } from './ribbon.js';
 import { loadGlyphs, measure, render, toSVG, STROKE_PARTS } from './hw.js';
 
-export { STRUCTURES, SYMBOLS };
+export { STRUCTURES, SYMBOLS, LABELS, translateToolbar };
 
 const DEFAULT_ASSETS = new URL('../assets/', import.meta.url).href;
 const FALLBACK = "'inkmath-wenkai'";   // full Greek / set-symbol coverage for fonts that lack them
@@ -14,6 +14,8 @@ const FALLBACK = "'inkmath-wenkai'";   // full Greek / set-symbol coverage for f
 const cache = new Map();
 const once = (key, f) => { if (!cache.has(key)) cache.set(key, f()); return cache.get(key); };
 const slash = (u) => (u.endsWith('/') ? u : u + '/');
+// options left undefined keep their defaults
+const given = (opts) => Object.fromEntries(Object.entries(opts).filter(([, v]) => v !== undefined));
 
 function loadAssets(assetsUrl, extraFonts = []) {
   const base = slash(new URL(assetsUrl, document.baseURI).href);
@@ -116,29 +118,62 @@ function differential(field, s) {
 
 /**
  * Mount an editor into `container`.
- * Options: value, font, toolbar, readOnly, thickness, roughness, seed, assetsUrl, fonts, structures, symbols, onChange.
+ * Options: value, font, toolbar, readOnly, thickness, roughness, seed, assetsUrl, fonts, onChange, onContextChange.
+ * `toolbar` is true (the default toolbar), false (none) or { structures, symbols, labels, edit, container }.
  */
 export async function createInkMath(container, options = {}) {
   const o = {
     value: '', font: 'caveat', toolbar: true, readOnly: false,
     thickness: 0.06, roughness: 1, seed: 0, assetsUrl: DEFAULT_ASSETS, fonts: [],
-    structures: STRUCTURES, symbols: SYMBOLS, onChange: null, ...options,
+    onChange: null, onContextChange: null, ...given(options),
   };
   const { base, glyphs, fonts } = await loadAssets(o.assetsUrl, o.fonts);
   MathfieldElement.fontsDirectory = base + 'mathlive-fonts';
   MathfieldElement.soundsDirectory = null;
   const style = { thickness: o.thickness, roughness: o.roughness, seed: o.seed };
   let fontId = pickFont(fonts, o.font);
+  const tb = o.toolbar && !o.readOnly ? (o.toolbar === true ? {} : o.toolbar) : null;
 
   const root = document.createElement('div'); root.className = 'inkmath';
-  const ribbonEl = document.createElement('div'); ribbonEl.className = 'inkmath-ribbon';
+  const ribbonEl = document.createElement('div'); ribbonEl.className = 'inkmath-tb';
   const wrap = document.createElement('div'); wrap.className = 'inkmath-field';
   const mf = new MathfieldElement();
   const overlay = overlaySVG();
   wrap.append(mf, overlay);
-  if (o.toolbar && !o.readOnly) root.append(ribbonEl);
+  // a toolbar placed elsewhere still sits in an .inkmath element, so the --inkmath-* colours reach it
+  let ribbonHost = null;
+  if (tb && tb.container) {
+    ribbonHost = document.createElement('div'); ribbonHost.className = 'inkmath inkmath-toolbar';
+    ribbonHost.append(ribbonEl); tb.container.appendChild(ribbonHost);
+  } else if (tb) root.append(ribbonEl);
   root.append(wrap);
   container.appendChild(root);
+
+  // events for custom toolbars: 'change' (latex), 'context' (where the caret is, what can be undone), 'font' (font id)
+  const listeners = { change: new Set(), context: new Set(), font: new Set() };
+  if (o.onChange) listeners.change.add(o.onChange);
+  if (o.onContextChange) listeners.context.add(o.onContextChange);
+  const on = (type, fn) => {
+    if (!listeners[type]) throw new Error(`inkmath: unknown event "${type}" (use 'change', 'context' or 'font')`);
+    listeners[type].add(fn);
+    return () => listeners[type].delete(fn);
+  };
+  function getContext() {
+    const model = mf._mathfield && mf._mathfield.model;
+    let inMatrix = false;
+    if (model) for (let a = model.at(mf.position); a; a = a.parent) if (a.type === 'array') { inMatrix = true; break; }
+    return {
+      focused: mf.hasFocus(), hasSelection: !mf.selectionIsCollapsed, inMatrix,
+      canUndo: mf.canUndo(), canRedo: mf.canRedo(), latexMode: mf.mode === 'latex',
+    };
+  }
+  let lastContext = '';
+  const emitContext = () => {
+    const c = getContext(), key = JSON.stringify(c);
+    if (key === lastContext) return;
+    lastContext = key;
+    for (const fn of listeners.context) fn(c);
+  };
 
   mf.smartFence = true;
   mf.mathVirtualKeyboardPolicy = 'manual';
@@ -161,6 +196,7 @@ export async function createInkMath(container, options = {}) {
   const update = () => {
     injectShadowCSS();
     draw(mf.shadowRoot && mf.shadowRoot.querySelector('.ML__content'), wrap, overlay, glyphs, getComputedStyle(mf).color, style);
+    emitContext();
   };
   const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
 
@@ -263,20 +299,27 @@ export async function createInkMath(container, options = {}) {
     if (/^\\[a-z]+_\{#\?\}\^\{#\?\}/.test(t)) { mf.executeCommand('moveToOpposite'); opSession = { stage: 'lower', upper: true }; }
     else if (/^\\[a-z]+_\{#\?\}/.test(t)) opSession = { stage: 'lower', upper: false };
     schedule();
+    emitChange();
   }
-  const removeRibbon = ribbonEl.isConnected ? buildRibbon(ribbonEl, {
-    render: (l) => convertLatexToMarkup(l),
-    onInsert: insertTemplate,
-    onCommand: (cmd) => { mf.focus(); mf.executeCommand(cmd); schedule(); },
-    structures: o.structures, symbols: o.symbols,
-  }) : () => {};
+  function command(cmd) { mf.focus(); mf.executeCommand(cmd); schedule(); emitChange(); }
+  // 'change' fires for typing, toolbar inserts and commands, once per actual change; not for setValue()
+  let lastValue = '';
+  function emitChange() {
+    const v = mf.value;
+    if (v === lastValue) return;
+    lastValue = v;
+    for (const fn of listeners.change) fn(v);
+  }
+  // a template or symbol as button markup, in the current handwriting font
+  const renderIcon = (latex) =>
+    `<span class="inkmath-icon" style="--hw-font:'inkmath-${fontId}'">${convertLatexToMarkup(preview(latex))}</span>`;
 
   mf.addEventListener('input', (e) => {
     // a font command typed in LaTeX mode with no argument
     const d = e.data || '';
     if (FONT_CMDS.includes(d.trim())) pendingFont = d.trim();
     schedule();
-    if (o.onChange) o.onChange(mf.value);
+    emitChange();
   });
   mf.addEventListener('selection-change', schedule);
   mf.addEventListener('pointerdown', () => { opSession = null; pendingFont = null; });
@@ -285,28 +328,30 @@ export async function createInkMath(container, options = {}) {
   const ro = new ResizeObserver(schedule);
   ro.observe(mf);
 
+  let removeRibbon = () => {};
+  // the built-in toolbar draws its buttons in the current font, so it is rebuilt when the font changes
+  const buildToolbar = () => { removeRibbon(); if (tb) removeRibbon = buildRibbon(ribbonEl, editor, tb); };
+
   function setFont(id) {
+    const changed = pickFont(fonts, id) !== fontId;
     fontId = pickFont(fonts, id);
     root.style.setProperty('--hw-font', fontVar(fontId));
     loadFont(fontId).then(schedule);
+    if (changed) { buildToolbar(); for (const fn of listeners.font) fn(fontId); }
     schedule();
   }
 
-  mf.value = o.value;
-  setFont(fontId);
-  await customElements.whenDefined('math-field');
-  await loadFont(fontId);
-  await document.fonts.ready;
-  injectShadowCSS();
-  update();
-
-  return {
+  const editor = {
     element: root,
     mathfield: mf,
     fonts: fonts.map(({ id, label, greek }) => ({ id, label, greek })),
     getValue: () => mf.value,
-    setValue(latex) { mf.value = latex; schedule(); },
+    setValue(latex) { mf.value = latex; lastValue = mf.value; schedule(); },
     insert: insertTemplate,
+    command,
+    getContext,
+    on,
+    renderIcon,
     focus: () => mf.focus(),
     getFont: () => fontId,
     setFont,
@@ -322,9 +367,22 @@ export async function createInkMath(container, options = {}) {
       ro.disconnect();
       window.removeEventListener('resize', schedule);
       removeRibbon();
+      for (const set of Object.values(listeners)) set.clear();
+      if (ribbonHost) ribbonHost.remove();
       root.remove();
     },
   };
+
+  mf.value = o.value;
+  lastValue = mf.value;
+  root.style.setProperty('--hw-font', fontVar(fontId));
+  await customElements.whenDefined('math-field');
+  await loadFont(fontId);
+  await document.fonts.ready;
+  buildToolbar();
+  injectShadowCSS();
+  update();
+  return editor;
 }
 
 /**
@@ -332,7 +390,7 @@ export async function createInkMath(container, options = {}) {
  * Options: font, display, thickness, roughness, seed, assetsUrl, fonts.
  */
 export async function renderLatex(target, latex, options = {}) {
-  const o = { font: 'caveat', display: false, thickness: 0.06, roughness: 1, seed: 0, assetsUrl: DEFAULT_ASSETS, fonts: [], ...options };
+  const o = { font: 'caveat', display: false, thickness: 0.06, roughness: 1, seed: 0, assetsUrl: DEFAULT_ASSETS, fonts: [], ...given(options) };
   const { base, glyphs, fonts } = await loadAssets(o.assetsUrl, o.fonts);
   MathfieldElement.fontsDirectory = base + 'mathlive-fonts';
   const fontId = pickFont(fonts, o.font);

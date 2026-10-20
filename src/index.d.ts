@@ -35,6 +35,59 @@ export interface SymbolGroup {
   items: string[];
 }
 
+/** The toolbar's own words. */
+export interface ToolbarLabels {
+  structures: string;
+  symbols: string;
+  undo: string;
+  redo: string;
+  /** Text before the matrix row/column buttons; '' for none. */
+  matrixActions: string;
+}
+
+export interface ToolbarOptions {
+  /** The Structures tab; [] hides the tab. Default STRUCTURES. */
+  structures?: StructureGroup[];
+  /** The Symbols tab; [] hides the tab. Default SYMBOLS. */
+  symbols?: SymbolGroup[];
+  labels?: Partial<ToolbarLabels>;
+  /** Show undo / redo. Default true. */
+  edit?: boolean;
+  /** Put the toolbar in this element instead of above the field. */
+  container?: HTMLElement;
+}
+
+/** Translations for translateToolbar(); anything left out stays English. */
+export interface ToolbarStrings {
+  labels?: Partial<ToolbarLabels>;
+  /** Structure group id -> label. */
+  structures?: Record<string, string>;
+  /** Symbol group id -> label. */
+  symbols?: Record<string, string>;
+  /** Template -> gallery name. */
+  items?: Record<string, string>;
+  /** MathLive command -> button text (the matrix actions). */
+  actions?: Record<string, string>;
+}
+
+export interface ToolbarConfig {
+  structures: StructureGroup[];
+  symbols: SymbolGroup[];
+  labels: ToolbarLabels;
+}
+
+/** Where the caret is and what can be done there, for enabling a custom toolbar's buttons. */
+export interface EditorContext {
+  focused: boolean;
+  hasSelection: boolean;
+  /** The caret is inside a matrix (row/column commands apply). */
+  inMatrix: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+  /** A LaTeX command is being typed. */
+  latexMode: boolean;
+}
+
 export interface StrokeStyle {
   /** Stroke width as a fraction of the font size. Default 0.06. */
   thickness?: number;
@@ -55,12 +108,11 @@ export interface CommonOptions extends StrokeStyle {
 export interface EditorOptions extends CommonOptions {
   /** Initial LaTeX. */
   value?: string;
-  /** Show the Word-style toolbar. Default true. */
-  toolbar?: boolean;
+  /** The Word-style toolbar: true (default), false for none, or its configuration. */
+  toolbar?: boolean | ToolbarOptions;
   readOnly?: boolean;
-  structures?: StructureGroup[];
-  symbols?: SymbolGroup[];
   onChange?: (latex: string) => void;
+  onContextChange?: (context: EditorContext) => void;
 }
 
 export interface InkMathEditor {
@@ -73,6 +125,15 @@ export interface InkMathEditor {
   setValue(latex: string): void;
   /** Insert a template at the caret; `#@` wraps the current selection. */
   insert(template: string): void;
+  /** Run a MathLive command, e.g. 'undo', 'redo', 'addRowAfter', 'removeColumn'. */
+  command(command: string | [string, ...unknown[]]): void;
+  getContext(): EditorContext;
+  /** Listen for changes; returns a function that stops listening. */
+  on(event: 'change', listener: (latex: string) => void): () => void;
+  on(event: 'context', listener: (context: EditorContext) => void): () => void;
+  on(event: 'font', listener: (fontId: string) => void): () => void;
+  /** HTML for a button showing `latex` (slots drawn as □) in the current handwriting font. */
+  renderIcon(latex: string): string;
   focus(): void;
   getFont(): string;
   setFont(id: string): void;
@@ -99,5 +160,9 @@ export function createInkMath(container: HTMLElement, options?: EditorOptions): 
 export function renderLatex(target: HTMLElement, latex: string, options?: RenderOptions): Promise<RenderedFormula>;
 export function listFonts(options?: { assetsUrl?: string | URL; fonts?: CustomFont[] }): Promise<FontInfo[]>;
 
+/** The default (English) toolbar. */
 export const STRUCTURES: StructureGroup[];
 export const SYMBOLS: SymbolGroup[];
+export const LABELS: ToolbarLabels;
+/** The default toolbar with its words replaced, ready for the `toolbar` option. */
+export function translateToolbar(strings?: ToolbarStrings): ToolbarConfig;
