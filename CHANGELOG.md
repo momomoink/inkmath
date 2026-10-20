@@ -3,7 +3,7 @@
 inkmath follows [semantic versioning](https://semver.org). Before 1.0, a minor version (0.x.0) may change the API; a patch
 version (0.x.y) only fixes things.
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-10-21)
 
 First release.
 
