@@ -9,6 +9,8 @@
 
 <p align="center">写出来是手写体，打起来像 LaTeX 一样快。</p>
 
+<p align="center"><a href="https://momomoink.github.io/inkmath/"><b>在浏览器里试试 →</b></a></p>
+
 English: [README.md](README.md) · 详细文档（英文）：[docs/](docs/README.md) · Logo 与配色：[brand/](brand/README.md)
 
 inkmath 是一个网页公式编辑器，主要做两件事。

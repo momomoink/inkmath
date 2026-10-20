@@ -1,5 +1,13 @@
+<!doctype html>
+<html lang="zh">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>inkmath</title>
+<meta name="description" content="把公式写成手写体的公式编辑器，支持 LaTeX 命令快速编辑。">
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" href="brand/favicon.ico" sizes="any">
+<link rel="icon" href="brand/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="brand/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400&display=swap">
 <link rel="stylesheet" href="dist/inkmath.css">
@@ -28,7 +36,7 @@
     --bg: #121815; --sheet: #18211c; --grid: #24332b; --ink: #e6eadf; --muted: #95a39a;
     --line: #2c3a32; --accent: #7fc4a0; --code-bg: #1f2a24; color-scheme: dark;
   }
-  body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); }
   main {
     max-width: 1040px; margin: 0 auto;
     padding-block: 32px 64px;
@@ -179,6 +187,7 @@ editor.setStyle({ roughness: 1.5 });</code></pre>
   </section>
 
   <footer>
+    <p><a href="https://github.com/momomoink/inkmath">GitHub</a> · <a href="https://www.npmjs.com/package/inkmath">npm</a> · <a href="https://github.com/momomoink/inkmath/tree/main/docs">文档</a></p>
     <p>编辑部分基于 MathLive。积分号、求和号、ℝℤ、希腊字母的手写笔迹来自 MathWriting 数据集（CC BY-NC-SA 4.0，不可商用）；字体均为 SIL Open Font License。</p>
   </footer>
 </main>

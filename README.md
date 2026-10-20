@@ -9,6 +9,8 @@
 
 <p align="center">Formulas that look handwritten, typed as fast as LaTeX.</p>
 
+<p align="center"><a href="https://momomoink.github.io/inkmath/"><b>Try it in your browser →</b></a></p>
+
 inkmath is a formula editor for the web that does two things.
 
 **1. It writes formulas in handwriting.** What you enter comes out as if written by hand on paper, not typeset:
