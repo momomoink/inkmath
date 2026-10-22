@@ -11,6 +11,8 @@
 
 <p align="center"><a href="https://momomoink.github.io/inkmath/"><b>在浏览器里试试 →</b></a></p>
 
+<p align="center"><img src="docs/images/hero.png" alt="inkmath 渲染的手写公式" width="430"></p>
+
 English: [README.md](README.md) · 详细文档（英文）：[docs/](docs/README.md) · Logo 与配色：[brand/](brand/README.md)
 
 inkmath 是基于 [MathLive](https://github.com/arnog/mathlive) 的 JavaScript 公式编辑器，致力于渲染漂亮的手写体公式，支持丰富的 LaTeX 命令。
@@ -23,6 +25,15 @@ inkmath 是基于 [MathLive](https://github.com/arnog/mathlive) 的 JavaScript �
 - **Word 式工具栏：** 点击即可插入结构和符号，也可以先选中内容，再用模板包裹。
 - **标准 LaTeX 输出：** 公式可以保存、搜索，或用于其他地方的排版。
 - **独立渲染：** 无需编辑器，使用 `renderLatex()` 即可将现成的 LaTeX 公式渲染为同样的手写体。
+
+## 效果
+
+| LaTeX | inkmath 渲染 |
+|---|---|
+| `\lim_{x\to 0}\frac{\sin x}{x}=1` | <img src="docs/images/limit.png" alt="极限" height="56"> |
+| `\det\begin{pmatrix}a & b\\ c & d\end{pmatrix}=ad-bc` | <img src="docs/images/matrix.png" alt="矩阵" height="56"> |
+| `\mathbb{Q}\subset\mathbb{R},\quad\mathcal{P}(A)=\{B\mid B\subseteq A\}` | <img src="docs/images/sets.png" alt="集合" height="56"> |
+| `(p\Rightarrow q)\Leftrightarrow(\neg q\Rightarrow\neg p)` | <img src="docs/images/contrapositive.png" alt="逆否命题" height="56"> |
 
 ## 安装
 

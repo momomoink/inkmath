@@ -11,6 +11,8 @@
 
 <p align="center"><a href="https://momomoink.github.io/inkmath/"><b>Try it in your browser →</b></a></p>
 
+<p align="center"><img src="docs/images/hero.png" alt="Handwritten formulas rendered by inkmath" width="430"></p>
+
 inkmath is a JavaScript formula editor built on [MathLive](https://github.com/arnog/mathlive), dedicated to rendering beautiful handwritten formulas with support for a rich set of LaTeX commands.
 
 ## Features
@@ -21,6 +23,15 @@ inkmath is a JavaScript formula editor built on [MathLive](https://github.com/ar
 - **Word-style toolbar:** Insert structures and symbols with a click, or wrap selected content in a template.
 - **Standard LaTeX output:** Store, search or typeset your formulas elsewhere.
 - **Standalone rendering:** Use `renderLatex()` to display existing LaTeX formulas in the same handwriting without an editor.
+
+## Examples
+
+| LaTeX | inkmath |
+|---|---|
+| `\lim_{x\to 0}\frac{\sin x}{x}=1` | <img src="docs/images/limit.png" alt="limit" height="56"> |
+| `\det\begin{pmatrix}a & b\\ c & d\end{pmatrix}=ad-bc` | <img src="docs/images/matrix.png" alt="matrix" height="56"> |
+| `\mathbb{Q}\subset\mathbb{R},\quad\mathcal{P}(A)=\{B\mid B\subseteq A\}` | <img src="docs/images/sets.png" alt="sets" height="56"> |
+| `(p\Rightarrow q)\Leftrightarrow(\neg q\Rightarrow\neg p)` | <img src="docs/images/contrapositive.png" alt="contrapositive" height="56"> |
 
 ## Install
 
