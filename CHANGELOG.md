@@ -3,6 +3,11 @@
 inkmath follows [semantic versioning](https://semver.org). Before 1.0, a minor version (0.x.0) may change the API; a patch
 version (0.x.y) only fixes things.
 
+## Unreleased
+
+- Lowercase π is written as a lowercase π (x-height, overhanging bar, curled right leg); it used to come out like Π.
+- ∇ and ℏ are handwritten (MathWriting samples) and ℓ is a pen-drawn cursive l; all three used to show in a typeset font.
+
 ## 0.1.1 (2026-10-21)
 
 - `\neg` / `\lnot` (¬) is spaced as an ordinary symbol, as in TeX: in `p\Rightarrow\neg q` it no longer runs into the arrow

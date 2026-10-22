@@ -62,16 +62,22 @@ const SHAPES = {
   '∨': [[[0, 0], [0.5, 1], [1, 0]]],
   '∵': [[[0.12, 0.15]], [[0.88, 0.15]], [[0.5, 0.85]]],
   '∴': [[[0.5, 0.15]], [[0.12, 0.85]], [[0.88, 0.85]]],
+  // lowercase π: MathWriting's samples are written like Π, so it is drawn here, x-height tall: the bar starts with a
+  // small hook and overhangs both legs, the left leg sweeps out to the left, the right one ends in a curl
+  'π': [[[0.06, 0.2], [0.12, 0.06], [0.5, 0.04], [1, 0]], [[0.33, 0.06], [0.31, 0.55], [0.23, 0.88], [0.13, 1]], [[0.69, 0.05], [0.67, 0.62], [0.72, 0.93], [0.84, 1], [0.96, 0.92]]],
+  // ℓ: a cursive l, one stroke up into a narrow loop and down to a small hook (no font has it in handwriting)
+  'ℓ': [[[0.04, 0.8], [0.5, 0.42], [0.86, 0.12], [0.78, 0.0], [0.56, 0.05], [0.34, 0.42], [0.26, 0.82], [0.44, 1], [0.92, 0.86]]],
 };
 // size of each shape in em (fallback fonts draw them too large): height, width, and whether it stands on the
 // baseline or is centred on the math axis
 const SHAPE_BOX = {
   '∀': [0.68, 0.56, 'base'], '∃': [0.68, 0.46, 'base'], '∄': [0.68, 0.46, 'base'], '¬': [0.28, 0.55, 'axis'],
   '∧': [0.55, 0.56, 'axis'], '∨': [0.55, 0.56, 'axis'], '∵': [0.5, 0.56, 'base'], '∴': [0.5, 0.56, 'base'],
+  'π': [0.46, 0.5, 'base'], 'ℓ': [0.72, 0.4, 'base'],
 };
 const PEN_CH = new Set(['∞', ...Object.keys(SHAPES)]);
-// Greek: no handwriting font covers it well, so letters come from the (curated) MathWriting samples
-const SAMPLE_CH = new Set([...'αβγδεϵζηθϑικλμνξπρσςτυφϕχψωϖΓΔΘΛΞΠΣΥΦΨΩ']);
+// Greek, ∇ and ℏ: no handwriting font covers them well, so letters come from the (curated) MathWriting samples
+const SAMPLE_CH = new Set([...'αβγδεϵζηθϑικλμνξρσςτυφϕχψωϖΓΔΘΛΞΠΣΥΦΨΩ∇ℏ']);
 const OWN_CH = (c) => ARROW_CH[c] || PEN_CH.has(c) || SAMPLE_CH.has(c);
 // MathLive's stretchy arrows (\xrightarrow, \overrightarrow, \longrightarrow ...) are SVG slices; recognised by path start
 const SLICES = [['M0 241v40h399891', 'end'], ['M400000 241H110', 'start'], ['M399738 392', 'end2'], ['M262 157', 'start2'], ['M40 281 V448H0V74H40V2', 'bar']];
@@ -170,8 +176,9 @@ export function measure(root, { strokeSel = null } = {}) {
       let box = b;
       if (t === '∞') box = { ...b, y0: axis - (b.y1 - b.y0) / 2, y1: axis + (b.y1 - b.y0) / 2 };
       else {
-        const cx = (b.left + b.right) / 2;
-        const [h, w, anchor] = SHAPE_BOX[t], H = h * b.em, W = Math.min(w * b.em, 0.92 * (b.right - b.left));
+        // π sits a little right of centre: the slanted handwriting letters before it lean into its slot
+        const cx = (b.left + b.right) / 2 + (t === 'π' ? 0.06 * b.em : 0);
+        const [h, w, anchor] = SHAPE_BOX[t], H = h * b.em, W = Math.min(w * b.em, (t === 'π' ? 0.8 : 0.92) * (b.right - b.left));
         const y1 = anchor === 'base' ? b.base : axis + H / 2;
         box = { ...b, x0: cx - W / 2, x1: cx + W / 2, y0: y1 - H, y1 };
       }
@@ -529,7 +536,7 @@ function negPoints(p, k, rand) {
   return roundedPolyline([a, c, end], [uniform(rand, 0.04, 0.07) * e]);
 }
 
-// ∀ ∃ ¬ ∧ ∨ ∵ ∴ from SHAPES: points jittered inside the box, inner corners rounded, a little wobble, and the same pen
+// ∀ ∃ ¬ ∧ ∨ ∵ ∴ π ℓ from SHAPES: points jittered inside the box, inner corners rounded, a little wobble, and the same pen
 // pressure as the bars (heavier where the pen lands, thinner where it lifts); dots are tiny ticks
 function shapePaths(p, k, rand) {
   const { x0, x1, y0, y1 } = p.box, e = p.em, W = x1 - x0, H = y1 - y0;
