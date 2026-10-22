@@ -1,6 +1,6 @@
 {
   "name": "inkmath",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A formula editor that writes in handwriting, edited fast with LaTeX commands",
   "type": "module",
   "main": "./src/index.js",
